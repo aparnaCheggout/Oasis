@@ -5,7 +5,7 @@
 // content.ts works for both.
 
 import type { RawService, RawShowcaseItem, RawSiteSettings, RawTestimonial } from "./content";
-import type { Writing } from "./types";
+import type { Article, MagazineIssue } from "./types";
 
 export const sampleSiteSettings: RawSiteSettings = {
   businessName: "Oasis Publishing House",
@@ -121,13 +121,26 @@ export const sampleShowcaseItems: RawShowcaseItem[] = [
 
 export const sampleTestimonials: RawTestimonial[] = [];
 
-export const sampleWritings: Writing[] = [
+export const sampleMagazineIssues: MagazineIssue[] = [
   {
-    slug: "sample-writing-one",
-    title: "നിങ്ങളുടെ ആദ്യ രചന ചേർക്കുക",
+    slug: "sample-issue",
+    title: "ആദ്യ ലക്കം ചേർക്കുക",
+    issueDate: "2026-08-01",
+    coverImageUrl: undefined,
+    description:
+      "സ്റ്റുഡിയോയിൽ ഓരോ മാസത്തെയും ലക്കം ഇവിടെ ഉണ്ടാക്കാം — പേര്, തീയതി, കവർ ചിത്രം എന്നിവ ചേർത്ത് തുടങ്ങുക.",
+  },
+];
+
+export const sampleArticles: Article[] = [
+  {
+    slug: "sample-article",
+    title: "ആദ്യ ലേഖനം ചേർക്കുക",
+    authorName: "എഴുത്തുകാരന്റെ പേര്",
     category: "കുറിപ്പ്",
-    excerpt: "സ്റ്റുഡിയോയിൽ നിന്ന് ദിനക്കുറിപ്പുകളും കഥകളും കവിതകളും ഇവിടെ ചേർക്കാം.",
-    body: "സാനിറ്റി സ്റ്റുഡിയോയിലെ Writing എന്ന വിഭാഗത്തിൽ പോയി ഒരു പുതിയ രേഖ ഉണ്ടാക്കുക. തലക്കെട്ട്, വിഭാഗം (കുറിപ്പ് / കഥ / കവിത), ഒരു ചെറിയ വിവരണം, പിന്നെ മുഴുവൻ എഴുത്തും ചേർക്കുക. പ്രസിദ്ധീകരിച്ചാൽ ഉടൻ ഇവിടെ കാണാം.",
+    excerpt: "ഓരോ രചനയും ഒരു ലക്കത്തിനോട് ബന്ധിപ്പിക്കുക.",
+    body: "സ്റ്റുഡിയോയിൽ Article എന്ന വിഭാഗത്തിൽ പോയി ഒരു പുതിയ രേഖ ഉണ്ടാക്കുക. തലക്കെട്ട്, എഴുത്തുകാരന്റെ പേര്, വിഭാഗം (ലേഖനം / കവിത / കഥ / കുറിപ്പ്), ഏത് ലക്കത്തിലാണ് എന്നത്, പിന്നെ മുഴുവൻ എഴുത്തും ചേർക്കുക.",
     publishedAt: "2026-08-20T00:00:00.000Z",
+    issueSlug: "sample-issue",
   },
 ];

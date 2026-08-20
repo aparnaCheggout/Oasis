@@ -1,8 +1,8 @@
 import { defineField, defineType } from "sanity";
 
 export default defineType({
-  name: "writing",
-  title: "Writing",
+  name: "article",
+  title: "Article",
   type: "document",
   fields: [
     defineField({
@@ -19,22 +19,37 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "authorName",
+      title: "Author name",
+      description: "The contributor who wrote this piece.",
+      type: "string",
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       name: "category",
       title: "Category",
       type: "string",
       options: {
         list: [
-          { title: "Write-up (കുറിപ്പ്)", value: "കുറിപ്പ്" },
-          { title: "Story (കഥ)", value: "കഥ" },
+          { title: "Article (ലേഖനം)", value: "ലേഖനം" },
           { title: "Poem (കവിത)", value: "കവിത" },
+          { title: "Story (കഥ)", value: "കഥ" },
+          { title: "Write-up (കുറിപ്പ്)", value: "കുറിപ്പ്" },
         ],
       },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "issue",
+      title: "Magazine issue",
+      type: "reference",
+      to: [{ type: "magazineIssue" }],
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       name: "excerpt",
       title: "Excerpt",
-      description: "A short line shown in the listing and on the homepage.",
+      description: "A short line shown in the issue's table of contents.",
       type: "text",
       rows: 2,
     }),
@@ -61,6 +76,6 @@ export default defineType({
     },
   ],
   preview: {
-    select: { title: "title", subtitle: "category" },
+    select: { title: "title", subtitle: "authorName" },
   },
 });

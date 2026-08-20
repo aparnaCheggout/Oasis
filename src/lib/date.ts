@@ -9,3 +9,14 @@ export function formatMalayalamDate(iso: string): string {
     return new Date(iso).toLocaleDateString();
   }
 }
+
+export function formatMalayalamMonthYear(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat("ml-IN", {
+      month: "long",
+      year: "numeric",
+    }).format(new Date(iso));
+  } catch {
+    return new Date(iso).toLocaleDateString();
+  }
+}

@@ -5,7 +5,7 @@
   "nav": {
     "services": "Services",
     "showcase": "Showcase",
-    "writings": "Writings",
+    "magazine": "Magazine",
     "about": "About",
     "contact": "Contact"
   },
@@ -14,9 +14,7 @@
     "seeWork": "See the work",
     "servicesHeading": "Services",
     "featuredWork": "Featured work",
-    "viewAll": "View all",
-    "latestWritings": "Latest writings",
-    "viewAllWritings": "View all writings"
+    "viewAll": "View all"
   },
   "services": {
     "heading": "Services",
@@ -37,12 +35,15 @@
     },
     "metaTitle": "Showcase"
   },
-  "writings": {
-    "heading": "Writings",
-    "intro": "Daily write-ups, stories, and poems, in Malayalam.",
-    "readMore": "Read more",
-    "backToWritings": "Back to writings",
-    "metaTitle": "Writings"
+  "magazine": {
+    "heading": "Magazine",
+    "intro": "A monthly magazine of articles, stories, and poems in Malayalam, from our contributors.",
+    "allIssues": "All issues",
+    "backToIssues": "Back to all issues",
+    "backToIssue": "Back to issue",
+    "by": "By",
+    "noIssuesYet": "No issues published yet.",
+    "metaTitle": "Magazine"
   },
   "about": {
     "heading": "About",

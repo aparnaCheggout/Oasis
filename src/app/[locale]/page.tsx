@@ -1,23 +1,20 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getServices, getShowcaseItems, getSiteSettings, getWritings } from "@/lib/content";
+import { getServices, getShowcaseItems, getSiteSettings } from "@/lib/content";
 import { getDictionary, isLocale, defaultLocale } from "@/lib/locale";
-import { formatMalayalamDate } from "@/lib/date";
 
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const { locale: rawLocale } = await params;
   const locale = isLocale(rawLocale) ? rawLocale : defaultLocale;
   const dict = getDictionary(locale);
 
-  const [settings, services, showcaseItems, writings] = await Promise.all([
+  const [settings, services, showcaseItems] = await Promise.all([
     getSiteSettings(locale),
     getServices(locale),
     getShowcaseItems(locale),
-    getWritings(),
   ]);
 
   const featured = showcaseItems.filter((item) => item.featured).slice(0, 3);
-  const latestWritings = writings.slice(0, 3);
 
   return (
     <div>
@@ -100,47 +97,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </div>
               </div>
             ))}
-          </div>
-        </section>
-      )}
-
-      {latestWritings.length > 0 && (
-        <section className="border-t border-border bg-surface-muted">
-          <div className="mx-auto max-w-5xl px-6 py-16">
-            <div className="flex items-center justify-between">
-              <h2 className="font-serif text-2xl font-semibold text-foreground">
-                {dict.home.latestWritings}
-              </h2>
-              <Link href={`/${locale}/writings`} className="text-sm text-accent hover:underline">
-                {dict.home.viewAllWritings}
-              </Link>
-            </div>
-            <div className="mt-8 grid gap-6 sm:grid-cols-3">
-              {latestWritings.map((writing) => (
-                <Link
-                  key={writing.slug}
-                  href={`/${locale}/writings/${writing.slug}`}
-                  className="rounded-lg border border-border bg-surface p-6 transition-colors hover:border-accent"
-                >
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="rounded-full bg-surface-muted px-2.5 py-1 font-malayalam text-gold">
-                      {writing.category}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {formatMalayalamDate(writing.publishedAt)}
-                    </span>
-                  </div>
-                  <h3 className="mt-3 font-malayalam text-lg font-semibold text-foreground">
-                    {writing.title}
-                  </h3>
-                  {writing.excerpt && (
-                    <p className="mt-2 font-malayalam text-sm text-muted-foreground">
-                      {writing.excerpt}
-                    </p>
-                  )}
-                </Link>
-              ))}
-            </div>
           </div>
         </section>
       )}

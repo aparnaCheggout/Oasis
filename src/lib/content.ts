@@ -2,13 +2,21 @@ import { client } from "@/sanity/lib/client";
 import { urlForImage } from "@/sanity/lib/image";
 import type { Locale } from "./locale";
 import {
+  sampleArticles,
+  sampleMagazineIssues,
   sampleServices,
   sampleShowcaseItems,
   sampleSiteSettings,
   sampleTestimonials,
-  sampleWritings,
 } from "./sampleData";
-import type { Service, ShowcaseItem, SiteSettings, Testimonial, Writing } from "./types";
+import type {
+  Article,
+  MagazineIssue,
+  Service,
+  ShowcaseItem,
+  SiteSettings,
+  Testimonial,
+} from "./types";
 
 type LocaleValue = { en?: string; ml?: string };
 
@@ -161,19 +169,44 @@ async function getRawTestimonials(): Promise<RawTestimonial[]> {
   return data ?? [];
 }
 
-export async function getWritings(): Promise<Writing[]> {
-  if (!client) return sampleWritings;
+export async function getMagazineIssues(): Promise<MagazineIssue[]> {
+  if (!client) return sampleMagazineIssues;
 
-  const data = await client.fetch(`*[_type == "writing"] | order(publishedAt desc){
-    "slug": slug.current, title, category, excerpt, body, publishedAt
+  const data = await client.fetch(`*[_type == "magazineIssue"] | order(issueDate desc){
+    "slug": slug.current, title, issueDate, coverImage, description
   }`);
 
-  return data?.length ? data : sampleWritings;
+  if (!data?.length) return sampleMagazineIssues;
+
+  return data.map((issue: Record<string, unknown>) => ({
+    ...issue,
+    coverImageUrl: urlForImage(issue.coverImage as never)?.width(600).url(),
+  }));
 }
 
-export async function getWriting(slug: string): Promise<Writing | null> {
-  // Reuses getWritings() so the sample-data fallback (when Sanity has no
-  // writing documents yet) stays consistent with the listing page.
-  const writings = await getWritings();
-  return writings.find((w) => w.slug === slug) ?? null;
+export async function getMagazineIssue(slug: string): Promise<MagazineIssue | null> {
+  // Reuses getMagazineIssues() so the sample-data fallback stays consistent
+  // with the issue archive page.
+  const issues = await getMagazineIssues();
+  return issues.find((issue) => issue.slug === slug) ?? null;
+}
+
+export async function getArticlesForIssue(issueSlug: string): Promise<Article[]> {
+  if (!client) return sampleArticles.filter((article) => article.issueSlug === issueSlug);
+
+  const data = await client.fetch(
+    `*[_type == "article" && issue->slug.current == $issueSlug] | order(publishedAt desc){
+      "slug": slug.current, title, authorName, category, excerpt, body, publishedAt,
+      "issueSlug": issue->slug.current
+    }`,
+    { issueSlug }
+  );
+
+  if (data?.length) return data;
+  return sampleArticles.filter((article) => article.issueSlug === issueSlug);
+}
+
+export async function getArticle(issueSlug: string, articleSlug: string): Promise<Article | null> {
+  const articles = await getArticlesForIssue(issueSlug);
+  return articles.find((article) => article.slug === articleSlug) ?? null;
 }

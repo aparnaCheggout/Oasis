@@ -38,13 +38,23 @@ export type SiteSettings = {
   contactPhone?: string;
 };
 
-export type WritingCategory = "കുറിപ്പ്" | "കഥ" | "കവിത";
+export type ArticleCategory = "ലേഖനം" | "കവിത" | "കഥ" | "കുറിപ്പ്";
 
-export type Writing = {
+export type MagazineIssue = {
   slug: string;
   title: string;
-  category: WritingCategory;
+  issueDate: string;
+  coverImageUrl?: string;
+  description?: string;
+};
+
+export type Article = {
+  slug: string;
+  title: string;
+  authorName: string;
+  category: ArticleCategory;
   excerpt?: string;
   body: string;
   publishedAt: string;
+  issueSlug: string;
 };
