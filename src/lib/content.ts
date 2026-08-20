@@ -63,6 +63,11 @@ function pick(value: LocaleValue | undefined, locale: Locale): string {
   return value[locale] || value.en || "";
 }
 
+// How long a fetched page can serve stale Sanity content before Next.js
+// re-fetches on the next request. Keeps content edits visible without
+// requiring a full redeploy.
+const FETCH_OPTIONS = { next: { revalidate: 30 } };
+
 export async function getSiteSettings(locale: Locale): Promise<SiteSettings> {
   const raw = await getRawSiteSettings();
   return {
@@ -79,9 +84,13 @@ export async function getSiteSettings(locale: Locale): Promise<SiteSettings> {
 async function getRawSiteSettings(): Promise<RawSiteSettings> {
   if (!client) return sampleSiteSettings;
 
-  const data = await client.fetch(`*[_type == "siteSettings"][0]{
-    businessName, tagline, founderName, founderPhoto, bio, contactEmail, contactPhone
-  }`);
+  const data = await client.fetch(
+    `*[_type == "siteSettings"][0]{
+      businessName, tagline, founderName, founderPhoto, bio, contactEmail, contactPhone
+    }`,
+    {},
+    FETCH_OPTIONS
+  );
 
   if (!data) return sampleSiteSettings;
 
@@ -111,9 +120,13 @@ export async function getServices(locale: Locale): Promise<Service[]> {
 async function getRawServices(): Promise<RawService[]> {
   if (!client) return sampleServices;
 
-  const data = await client.fetch(`*[_type == "service"] | order(order asc){
-    "slug": slug.current, title, summary, whatsIncluded, turnaround, order
-  }`);
+  const data = await client.fetch(
+    `*[_type == "service"] | order(order asc){
+      "slug": slug.current, title, summary, whatsIncluded, turnaround, order
+    }`,
+    {},
+    FETCH_OPTIONS
+  );
 
   return data?.length ? data : sampleServices;
 }
@@ -137,10 +150,14 @@ export async function getShowcaseItems(locale: Locale): Promise<ShowcaseItem[]> 
 async function getRawShowcaseItems(): Promise<RawShowcaseItem[]> {
   if (!client) return sampleShowcaseItems;
 
-  const data = await client.fetch(`*[_type == "showcaseItem"] | order(order asc){
-    "slug": slug.current, title, workType, coverImage, description,
-    originalAuthor, yearCompleted, externalLink, featured, order
-  }`);
+  const data = await client.fetch(
+    `*[_type == "showcaseItem"] | order(order asc){
+      "slug": slug.current, title, workType, coverImage, description,
+      originalAuthor, yearCompleted, externalLink, featured, order
+    }`,
+    {},
+    FETCH_OPTIONS
+  );
 
   if (!data?.length) return sampleShowcaseItems;
 
@@ -162,9 +179,13 @@ export async function getTestimonials(locale: Locale): Promise<Testimonial[]> {
 async function getRawTestimonials(): Promise<RawTestimonial[]> {
   if (!client) return sampleTestimonials;
 
-  const data = await client.fetch(`*[_type == "testimonial"]{
-    authorName, authorRole, quote
-  }`);
+  const data = await client.fetch(
+    `*[_type == "testimonial"]{
+      authorName, authorRole, quote
+    }`,
+    {},
+    FETCH_OPTIONS
+  );
 
   return data ?? [];
 }
@@ -172,9 +193,13 @@ async function getRawTestimonials(): Promise<RawTestimonial[]> {
 export async function getMagazineIssues(): Promise<MagazineIssue[]> {
   if (!client) return sampleMagazineIssues;
 
-  const data = await client.fetch(`*[_type == "magazineIssue"] | order(issueDate desc){
-    "slug": slug.current, title, issueDate, coverImage, description
-  }`);
+  const data = await client.fetch(
+    `*[_type == "magazineIssue"] | order(issueDate desc){
+      "slug": slug.current, title, issueDate, coverImage, description
+    }`,
+    {},
+    FETCH_OPTIONS
+  );
 
   if (!data?.length) return sampleMagazineIssues;
 
@@ -199,7 +224,8 @@ export async function getArticlesForIssue(issueSlug: string): Promise<Article[]>
       "slug": slug.current, title, authorName, category, excerpt, body, publishedAt,
       "issueSlug": issue->slug.current
     }`,
-    { issueSlug }
+    { issueSlug },
+    FETCH_OPTIONS
   );
 
   if (data?.length) return data;
