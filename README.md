@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Oasis Publishing House
 
-## Getting Started
+A site for a translation and book layout business: services, a showcase of past work,
+and a contact form for project inquiries. Built with Next.js + Sanity (content) + Resend
+(contact form emails).
 
-First, run the development server:
+The site works out of the box with placeholder content — no accounts required to preview it.
+Follow the steps below to connect real content and a real inbox.
+
+## Run it locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. Until Sanity is connected (below), pages show sample/placeholder
+content so you can see the layout immediately.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Connect Sanity (so the site owner can edit content without code)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a free account at [sanity.io](https://www.sanity.io) and run:
+   ```bash
+   npx sanity@latest init
+   ```
+   Choose "Create new project", pick a project name, and select the **production** dataset.
+   When it asks about a schema/template, you can skip — this repo already has one in
+   `src/sanity/schemaTypes/`.
+2. Copy `.env.local.example` to `.env.local` and fill in the project ID it gave you:
+   ```
+   NEXT_PUBLIC_SANITY_PROJECT_ID=your-project-id
+   NEXT_PUBLIC_SANITY_DATASET=production
+   ```
+3. Restart `npm run dev`, then open http://localhost:3000/studio — that's the content editor.
+   Add:
+   - **Site Settings** (one document): business name, tagline, bio, contact email/phone
+   - **Service** documents: Translation, Layout & Design, Bundle (or whatever you're offering)
+   - **Showcase Item** documents: each translated book or layout project, with a cover image
+   - **Testimonial** documents (optional): quotes from past clients
+4. When you deploy (see below), give the site owner the `/studio` URL on the live site —
+   that's their permanent editing dashboard. No code access needed.
 
-## Learn More
+## Connect the contact form (so inquiries land in an inbox)
 
-To learn more about Next.js, take a look at the following resources:
+1. Create a free account at [resend.com](https://resend.com) and generate an API key.
+2. Add to `.env.local`:
+   ```
+   RESEND_API_KEY=your-resend-api-key
+   CONTACT_EMAIL=the-inbox-that-should-receive-inquiries@example.com
+   ```
+3. By default this uses Resend's shared sending address (`onboarding@resend.dev`), which only
+   delivers to the email you signed up to Resend with. To receive inquiries at your real
+   business inbox, verify your own domain in Resend and change the `from` address in
+   `src/app/api/contact/route.ts`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Without these two env vars set, the contact form still works end-to-end in the browser, but
+submissions are only logged to the server console instead of emailed — useful for testing the
+UI before wiring up real email.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploying
 
-## Deploy on Vercel
+The easiest path is [Vercel](https://vercel.com):
+1. Push this repo to GitHub.
+2. Import it in Vercel, add the same environment variables from `.env.local` in the Vercel
+   project settings.
+3. Deploy. `/studio` on the deployed URL is the live content editor.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/app/` — pages (home, services, showcase, about, contact) and the `/api/contact` route
+- `src/sanity/schemaTypes/` — the content model editable in `/studio`
+- `src/lib/content.ts` — fetches content from Sanity, falling back to `src/lib/sampleData.ts`
+  when Sanity isn't configured yet
+- `src/components/` — shared Header, Footer, and the contact form
