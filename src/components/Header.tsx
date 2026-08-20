@@ -14,6 +14,7 @@ export default function Header({
   const navLinks = [
     { href: `/${locale}/services`, label: dict.nav.services },
     { href: `/${locale}/showcase`, label: dict.nav.showcase },
+    { href: `/${locale}/writings`, label: dict.nav.writings },
     { href: `/${locale}/about`, label: dict.nav.about },
     { href: `/${locale}/contact`, label: dict.nav.contact },
   ];

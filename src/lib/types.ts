@@ -37,3 +37,14 @@ export type SiteSettings = {
   contactEmail: string;
   contactPhone?: string;
 };
+
+export type WritingCategory = "കുറിപ്പ്" | "കഥ" | "കവിത";
+
+export type Writing = {
+  slug: string;
+  title: string;
+  category: WritingCategory;
+  excerpt?: string;
+  body: string;
+  publishedAt: string;
+};

@@ -5,6 +5,7 @@
   "nav": {
     "services": "Services",
     "showcase": "Showcase",
+    "writings": "Writings",
     "about": "About",
     "contact": "Contact"
   },
@@ -13,7 +14,9 @@
     "seeWork": "See the work",
     "servicesHeading": "Services",
     "featuredWork": "Featured work",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "latestWritings": "Latest writings",
+    "viewAllWritings": "View all writings"
   },
   "services": {
     "heading": "Services",
@@ -33,6 +36,13 @@
       "both": "Translation + layout"
     },
     "metaTitle": "Showcase"
+  },
+  "writings": {
+    "heading": "Writings",
+    "intro": "Daily write-ups, stories, and poems, in Malayalam.",
+    "readMore": "Read more",
+    "backToWritings": "Back to writings",
+    "metaTitle": "Writings"
   },
   "about": {
     "heading": "About",

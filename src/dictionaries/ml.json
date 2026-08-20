@@ -5,6 +5,7 @@
   "nav": {
     "services": "സേവനങ്ങൾ",
     "showcase": "സൃഷ്ടികൾ",
+    "writings": "രചനകൾ",
     "about": "ഞങ്ങളെക്കുറിച്ച്",
     "contact": "ബന്ധപ്പെടുക"
   },
@@ -13,7 +14,9 @@
     "seeWork": "സൃഷ്ടികൾ കാണുക",
     "servicesHeading": "സേവനങ്ങൾ",
     "featuredWork": "പ്രധാന സൃഷ്ടികൾ",
-    "viewAll": "എല്ലാം കാണുക"
+    "viewAll": "എല്ലാം കാണുക",
+    "latestWritings": "പുതിയ രചനകൾ",
+    "viewAllWritings": "എല്ലാ രചനകളും കാണുക"
   },
   "services": {
     "heading": "സേവനങ്ങൾ",
@@ -33,6 +36,13 @@
       "both": "വിവർത്തനവും ലേഔട്ടും"
     },
     "metaTitle": "സൃഷ്ടികൾ"
+  },
+  "writings": {
+    "heading": "രചനകൾ",
+    "intro": "മലയാളത്തിൽ എഴുതുന്ന ദിനക്കുറിപ്പുകൾ, കഥകൾ, കവിതകൾ.",
+    "readMore": "കൂടുതൽ വായിക്കുക",
+    "backToWritings": "രചനകളിലേക്ക് മടങ്ങുക",
+    "metaTitle": "രചനകൾ"
   },
   "about": {
     "heading": "ഞങ്ങളെക്കുറിച്ച്",

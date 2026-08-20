@@ -6,8 +6,9 @@ import {
   sampleShowcaseItems,
   sampleSiteSettings,
   sampleTestimonials,
+  sampleWritings,
 } from "./sampleData";
-import type { Service, ShowcaseItem, SiteSettings, Testimonial } from "./types";
+import type { Service, ShowcaseItem, SiteSettings, Testimonial, Writing } from "./types";
 
 type LocaleValue = { en?: string; ml?: string };
 
@@ -158,4 +159,21 @@ async function getRawTestimonials(): Promise<RawTestimonial[]> {
   }`);
 
   return data ?? [];
+}
+
+export async function getWritings(): Promise<Writing[]> {
+  if (!client) return sampleWritings;
+
+  const data = await client.fetch(`*[_type == "writing"] | order(publishedAt desc){
+    "slug": slug.current, title, category, excerpt, body, publishedAt
+  }`);
+
+  return data?.length ? data : sampleWritings;
+}
+
+export async function getWriting(slug: string): Promise<Writing | null> {
+  // Reuses getWritings() so the sample-data fallback (when Sanity has no
+  // writing documents yet) stays consistent with the listing page.
+  const writings = await getWritings();
+  return writings.find((w) => w.slug === slug) ?? null;
 }

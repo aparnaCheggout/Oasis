@@ -5,6 +5,7 @@
 // content.ts works for both.
 
 import type { RawService, RawShowcaseItem, RawSiteSettings, RawTestimonial } from "./content";
+import type { Writing } from "./types";
 
 export const sampleSiteSettings: RawSiteSettings = {
   businessName: "Oasis Publishing House",
@@ -119,3 +120,14 @@ export const sampleShowcaseItems: RawShowcaseItem[] = [
 ];
 
 export const sampleTestimonials: RawTestimonial[] = [];
+
+export const sampleWritings: Writing[] = [
+  {
+    slug: "sample-writing-one",
+    title: "നിങ്ങളുടെ ആദ്യ രചന ചേർക്കുക",
+    category: "കുറിപ്പ്",
+    excerpt: "സ്റ്റുഡിയോയിൽ നിന്ന് ദിനക്കുറിപ്പുകളും കഥകളും കവിതകളും ഇവിടെ ചേർക്കാം.",
+    body: "സാനിറ്റി സ്റ്റുഡിയോയിലെ Writing എന്ന വിഭാഗത്തിൽ പോയി ഒരു പുതിയ രേഖ ഉണ്ടാക്കുക. തലക്കെട്ട്, വിഭാഗം (കുറിപ്പ് / കഥ / കവിത), ഒരു ചെറിയ വിവരണം, പിന്നെ മുഴുവൻ എഴുത്തും ചേർക്കുക. പ്രസിദ്ധീകരിച്ചാൽ ഉടൻ ഇവിടെ കാണാം.",
+    publishedAt: "2026-08-20T00:00:00.000Z",
+  },
+];
