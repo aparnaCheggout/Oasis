@@ -1,0 +1,59 @@
+{
+  "common": {
+    "noCover": "No cover yet"
+  },
+  "nav": {
+    "services": "Services",
+    "showcase": "Showcase",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "home": {
+    "startProject": "Start a project",
+    "seeWork": "See the work",
+    "servicesHeading": "Services",
+    "featuredWork": "Featured work",
+    "viewAll": "View all"
+  },
+  "services": {
+    "heading": "Services",
+    "intro": "Whether you have a manuscript ready to translate, a document ready to lay out, or a book you want carried from English draft to finished Malayalam edition, here is how that works.",
+    "turnaround": "Turnaround:",
+    "requestQuote": "Request a quote",
+    "metaTitle": "Services"
+  },
+  "showcase": {
+    "heading": "Showcase",
+    "intro": "Translated books and layout projects, gathered in one place.",
+    "originalBy": "Original by",
+    "whereToFind": "Where to find it",
+    "workType": {
+      "translation": "Translation",
+      "layout": "Layout & design",
+      "both": "Translation + layout"
+    },
+    "metaTitle": "Showcase"
+  },
+  "about": {
+    "heading": "About",
+    "metaTitle": "About"
+  },
+  "contact": {
+    "heading": "Get in touch",
+    "intro": "Share a few details about your book and we'll follow up with a quote and timeline.",
+    "metaTitle": "Contact",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "whatDoYouNeed": "What do you need?",
+      "notSure": "Not sure yet",
+      "message": "Tell us about your project",
+      "messagePlaceholder": "Manuscript length, language, timeline, anything else useful.",
+      "send": "Send inquiry",
+      "sending": "Sending…",
+      "success": "Thanks for reaching out — your message has been sent. You should hear back soon.",
+      "genericError": "Something went wrong. Please try again.",
+      "requiredError": "Please fill in all required fields."
+    }
+  }
+}

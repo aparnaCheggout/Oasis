@@ -1,5 +1,6 @@
 import { client } from "@/sanity/lib/client";
 import { urlForImage } from "@/sanity/lib/image";
+import type { Locale } from "./locale";
 import {
   sampleServices,
   sampleShowcaseItems,
@@ -8,7 +9,65 @@ import {
 } from "./sampleData";
 import type { Service, ShowcaseItem, SiteSettings, Testimonial } from "./types";
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+type LocaleValue = { en?: string; ml?: string };
+
+export type RawService = {
+  slug: string;
+  title: LocaleValue;
+  summary: LocaleValue;
+  whatsIncluded?: LocaleValue[];
+  turnaround?: LocaleValue;
+  order: number;
+};
+
+export type RawShowcaseItem = {
+  slug: string;
+  title: LocaleValue;
+  workType: ShowcaseItem["workType"];
+  coverImageUrl?: string;
+  description?: LocaleValue;
+  originalAuthor?: string;
+  yearCompleted?: number;
+  externalLink?: string;
+  featured: boolean;
+  order: number;
+};
+
+export type RawTestimonial = {
+  authorName: string;
+  authorRole?: LocaleValue;
+  quote: LocaleValue;
+};
+
+export type RawSiteSettings = {
+  businessName: string;
+  tagline?: LocaleValue;
+  founderName?: string;
+  founderPhotoUrl?: string;
+  bio?: LocaleValue;
+  contactEmail: string;
+  contactPhone?: string;
+};
+
+function pick(value: LocaleValue | undefined, locale: Locale): string {
+  if (!value) return "";
+  return value[locale] || value.en || "";
+}
+
+export async function getSiteSettings(locale: Locale): Promise<SiteSettings> {
+  const raw = await getRawSiteSettings();
+  return {
+    businessName: raw.businessName,
+    tagline: pick(raw.tagline, locale),
+    founderName: raw.founderName,
+    founderPhotoUrl: raw.founderPhotoUrl,
+    bio: pick(raw.bio, locale),
+    contactEmail: raw.contactEmail,
+    contactPhone: raw.contactPhone,
+  };
+}
+
+async function getRawSiteSettings(): Promise<RawSiteSettings> {
   if (!client) return sampleSiteSettings;
 
   const data = await client.fetch(`*[_type == "siteSettings"][0]{
@@ -28,7 +87,19 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   };
 }
 
-export async function getServices(): Promise<Service[]> {
+export async function getServices(locale: Locale): Promise<Service[]> {
+  const raw = await getRawServices();
+  return raw.map((service) => ({
+    slug: service.slug,
+    title: pick(service.title, locale),
+    summary: pick(service.summary, locale),
+    whatsIncluded: (service.whatsIncluded ?? []).map((item) => pick(item, locale)),
+    turnaround: service.turnaround ? pick(service.turnaround, locale) : undefined,
+    order: service.order,
+  }));
+}
+
+async function getRawServices(): Promise<RawService[]> {
   if (!client) return sampleServices;
 
   const data = await client.fetch(`*[_type == "service"] | order(order asc){
@@ -38,7 +109,23 @@ export async function getServices(): Promise<Service[]> {
   return data?.length ? data : sampleServices;
 }
 
-export async function getShowcaseItems(): Promise<ShowcaseItem[]> {
+export async function getShowcaseItems(locale: Locale): Promise<ShowcaseItem[]> {
+  const raw = await getRawShowcaseItems();
+  return raw.map((item) => ({
+    slug: item.slug,
+    title: pick(item.title, locale),
+    workType: item.workType,
+    coverImageUrl: item.coverImageUrl,
+    description: item.description ? pick(item.description, locale) : undefined,
+    originalAuthor: item.originalAuthor,
+    yearCompleted: item.yearCompleted,
+    externalLink: item.externalLink,
+    featured: item.featured,
+    order: item.order,
+  }));
+}
+
+async function getRawShowcaseItems(): Promise<RawShowcaseItem[]> {
   if (!client) return sampleShowcaseItems;
 
   const data = await client.fetch(`*[_type == "showcaseItem"] | order(order asc){
@@ -54,7 +141,16 @@ export async function getShowcaseItems(): Promise<ShowcaseItem[]> {
   }));
 }
 
-export async function getTestimonials(): Promise<Testimonial[]> {
+export async function getTestimonials(locale: Locale): Promise<Testimonial[]> {
+  const raw = await getRawTestimonials();
+  return raw.map((testimonial) => ({
+    authorName: testimonial.authorName,
+    authorRole: testimonial.authorRole ? pick(testimonial.authorRole, locale) : undefined,
+    quote: pick(testimonial.quote, locale),
+  }));
+}
+
+async function getRawTestimonials(): Promise<RawTestimonial[]> {
   if (!client) return sampleTestimonials;
 
   const data = await client.fetch(`*[_type == "testimonial"]{

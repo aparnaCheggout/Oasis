@@ -1,14 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import type { Dictionary, Locale } from "@/lib/locale";
 import type { Service } from "@/lib/types";
 
 export default function ContactForm({
   services,
   initialServiceSlug,
+  locale,
+  dict,
 }: {
   services: Service[];
   initialServiceSlug?: string;
+  locale: Locale;
+  dict: Dictionary["contact"]["form"];
 }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -30,13 +35,14 @@ export default function ContactForm({
           email: data.get("email"),
           projectType: data.get("projectType"),
           message: data.get("message"),
+          locale,
         }),
       });
 
       const result = await res.json();
 
       if (!res.ok) {
-        setErrorMessage(result.error ?? "Something went wrong. Please try again.");
+        setErrorMessage(result.error ?? dict.genericError);
         setStatus("error");
         return;
       }
@@ -44,7 +50,7 @@ export default function ContactForm({
       setStatus("success");
       form.reset();
     } catch {
-      setErrorMessage("Something went wrong. Please try again.");
+      setErrorMessage(dict.genericError);
       setStatus("error");
     }
   }
@@ -52,7 +58,7 @@ export default function ContactForm({
   if (status === "success") {
     return (
       <div className="rounded-lg border border-border bg-surface-muted p-6 text-foreground">
-        Thanks for reaching out — your message has been sent. You should hear back soon.
+        {dict.success}
       </div>
     );
   }
@@ -61,7 +67,7 @@ export default function ContactForm({
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-foreground">
-          Name
+          {dict.name}
         </label>
         <input
           id="name"
@@ -74,7 +80,7 @@ export default function ContactForm({
 
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-foreground">
-          Email
+          {dict.email}
         </label>
         <input
           id="email"
@@ -87,7 +93,7 @@ export default function ContactForm({
 
       <div>
         <label htmlFor="projectType" className="block text-sm font-medium text-foreground">
-          What do you need?
+          {dict.whatDoYouNeed}
         </label>
         <select
           id="projectType"
@@ -95,7 +101,7 @@ export default function ContactForm({
           defaultValue={initialServiceSlug ?? ""}
           className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-foreground focus:border-accent focus:outline-none"
         >
-          <option value="">Not sure yet</option>
+          <option value="">{dict.notSure}</option>
           {services.map((service) => (
             <option key={service.slug} value={service.slug}>
               {service.title}
@@ -106,14 +112,14 @@ export default function ContactForm({
 
       <div>
         <label htmlFor="message" className="block text-sm font-medium text-foreground">
-          Tell us about your project
+          {dict.message}
         </label>
         <textarea
           id="message"
           name="message"
           required
           rows={5}
-          placeholder="Manuscript length, language, timeline, anything else useful."
+          placeholder={dict.messagePlaceholder}
           className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-foreground focus:border-accent focus:outline-none"
         />
       </div>
@@ -127,7 +133,7 @@ export default function ContactForm({
         disabled={status === "submitting"}
         className="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
       >
-        {status === "submitting" ? "Sending…" : "Send inquiry"}
+        {status === "submitting" ? dict.sending : dict.send}
       </button>
     </form>
   );

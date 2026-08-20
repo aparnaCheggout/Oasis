@@ -1,21 +1,17 @@
 import { defineField, defineType } from "sanity";
+import { localeStringField, localeTextField } from "./locale";
 
 export default defineType({
   name: "showcaseItem",
   title: "Showcase Item",
   type: "document",
   fields: [
-    defineField({
-      name: "title",
-      title: "Book title",
-      type: "string",
-      validation: (Rule) => Rule.required(),
-    }),
+    localeStringField("title", "Book title", true),
     defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
-      options: { source: "title" },
+      options: { source: "title.en" },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -37,12 +33,7 @@ export default defineType({
       type: "image",
       options: { hotspot: true },
     }),
-    defineField({
-      name: "description",
-      title: "Description",
-      type: "text",
-      rows: 4,
-    }),
+    localeTextField("description", "Description", 4),
     defineField({
       name: "originalAuthor",
       title: "Original author",
@@ -73,6 +64,6 @@ export default defineType({
     }),
   ],
   preview: {
-    select: { title: "title", subtitle: "workType", media: "coverImage" },
+    select: { title: "title.en", subtitle: "workType", media: "coverImage" },
   },
 });

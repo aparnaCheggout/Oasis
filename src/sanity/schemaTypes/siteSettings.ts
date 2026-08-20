@@ -1,4 +1,5 @@
 import { defineField, defineType } from "sanity";
+import { localeStringField, localeTextField } from "./locale";
 
 export default defineType({
   name: "siteSettings",
@@ -11,12 +12,7 @@ export default defineType({
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
-    defineField({
-      name: "tagline",
-      title: "Tagline",
-      type: "string",
-      description: "Shown under the business name on the homepage hero.",
-    }),
+    localeStringField("tagline", "Tagline"),
     defineField({
       name: "founderName",
       title: "Founder name",
@@ -28,12 +24,7 @@ export default defineType({
       type: "image",
       options: { hotspot: true },
     }),
-    defineField({
-      name: "bio",
-      title: "Bio",
-      type: "text",
-      rows: 6,
-    }),
+    localeTextField("bio", "Bio", 6),
     defineField({
       name: "contactEmail",
       title: "Contact email",

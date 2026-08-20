@@ -1,17 +1,22 @@
 import Image from "next/image";
-import type { Metadata } from "next";
 import { getSiteSettings } from "@/lib/content";
+import { getDictionary, isLocale, defaultLocale } from "@/lib/locale";
 
-export const metadata: Metadata = {
-  title: "About",
-};
+export async function generateMetadata({ params }: PageProps<"/[locale]/about">) {
+  const { locale: rawLocale } = await params;
+  const locale = isLocale(rawLocale) ? rawLocale : defaultLocale;
+  return { title: getDictionary(locale).about.metaTitle };
+}
 
-export default async function AboutPage() {
-  const settings = await getSiteSettings();
+export default async function AboutPage({ params }: PageProps<"/[locale]/about">) {
+  const { locale: rawLocale } = await params;
+  const locale = isLocale(rawLocale) ? rawLocale : defaultLocale;
+  const dict = getDictionary(locale);
+  const settings = await getSiteSettings(locale);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="font-serif text-3xl font-semibold text-foreground">About</h1>
+      <h1 className="font-serif text-3xl font-semibold text-foreground">{dict.about.heading}</h1>
 
       <div className="mt-10 flex flex-col gap-8 sm:flex-row">
         {settings.founderPhotoUrl && (

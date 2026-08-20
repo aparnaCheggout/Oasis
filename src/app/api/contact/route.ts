@@ -1,16 +1,21 @@
 import { Resend } from "resend";
+import { defaultLocale, getDictionary, isLocale } from "@/lib/locale";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { name, email, projectType, message } = body as {
+  const { name, email, projectType, message, locale: rawLocale } = body as {
     name?: string;
     email?: string;
     projectType?: string;
     message?: string;
+    locale?: string;
   };
 
+  const locale = rawLocale && isLocale(rawLocale) ? rawLocale : defaultLocale;
+  const dict = getDictionary(locale).contact.form;
+
   if (!name || !email || !message) {
-    return Response.json({ error: "Please fill in all required fields." }, { status: 400 });
+    return Response.json({ error: dict.requiredError }, { status: 400 });
   }
 
   const apiKey = process.env.RESEND_API_KEY;
@@ -36,7 +41,7 @@ export async function POST(request: Request) {
 
   if (error) {
     console.error("[contact] Resend error:", error);
-    return Response.json({ error: "Something went wrong sending your message." }, { status: 500 });
+    return Response.json({ error: dict.genericError }, { status: 500 });
   }
 
   return Response.json({ ok: true, delivered: true });

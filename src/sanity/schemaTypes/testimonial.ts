@@ -1,4 +1,5 @@
 import { defineField, defineType } from "sanity";
+import { localeStringField, localeTextField } from "./locale";
 
 export default defineType({
   name: "testimonial",
@@ -11,19 +12,8 @@ export default defineType({
       type: "string",
       validation: (Rule) => Rule.required(),
     }),
-    defineField({
-      name: "authorRole",
-      title: "Author role",
-      type: "string",
-      description: 'e.g. "Self-published author" or "Publisher, XYZ Books"',
-    }),
-    defineField({
-      name: "quote",
-      title: "Quote",
-      type: "text",
-      rows: 3,
-      validation: (Rule) => Rule.required(),
-    }),
+    localeStringField("authorRole", "Author role"),
+    localeTextField("quote", "Quote", 3, true),
     defineField({
       name: "relatedShowcaseItem",
       title: "Related showcase item",
@@ -32,6 +22,6 @@ export default defineType({
     }),
   ],
   preview: {
-    select: { title: "authorName", subtitle: "quote" },
+    select: { title: "authorName", subtitle: "quote.en" },
   },
 });
