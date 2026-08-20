@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { getShowcaseItems } from "@/lib/content";
 import { getDictionary, isLocale, defaultLocale } from "@/lib/locale";
+import { badgeFallback, workTypeBadge } from "@/lib/badgeColors";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/showcase">) {
   const { locale: rawLocale } = await params;
@@ -44,10 +45,14 @@ export default async function ShowcasePage({ params }: PageProps<"/[locale]/show
               )}
             </div>
             <div className="p-5">
-              <p className="text-xs uppercase tracking-wide text-gold">
+              <span
+                className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium uppercase tracking-wide ${
+                  workTypeBadge[item.workType] ?? badgeFallback
+                }`}
+              >
                 {workTypeLabels[item.workType] ?? item.workType}
-              </p>
-              <h2 className="mt-1 font-serif text-lg font-semibold text-foreground">{item.title}</h2>
+              </span>
+              <h2 className="mt-2 font-serif text-lg font-semibold text-foreground">{item.title}</h2>
               {item.originalAuthor && (
                 <p className="mt-1 text-sm text-muted-foreground">
                   {dict.showcase.originalBy} {item.originalAuthor}

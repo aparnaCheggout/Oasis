@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getArticlesForIssue, getMagazineIssue } from "@/lib/content";
 import { getDictionary, isLocale, defaultLocale } from "@/lib/locale";
 import { formatMalayalamMonthYear } from "@/lib/date";
+import { articleCategoryBadge, badgeFallback } from "@/lib/badgeColors";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/magazine/[issue]">) {
   const { issue: issueSlug } = await params;
@@ -28,7 +29,7 @@ export default async function MagazineIssuePage({
         &larr; {dict.magazine.backToIssues}
       </Link>
 
-      <p className="mt-6 text-xs uppercase tracking-wide text-gold">
+      <p className="mt-6 text-xs uppercase tracking-wide text-teal">
         {formatMalayalamMonthYear(issue.issueDate)}
       </p>
       <h1 className="mt-2 font-malayalam text-3xl font-semibold text-foreground">{issue.title}</h1>
@@ -44,7 +45,11 @@ export default async function MagazineIssuePage({
             className="block rounded-lg border border-border bg-surface p-6 transition-colors hover:border-accent"
           >
             <div className="flex items-center gap-3 text-xs">
-              <span className="rounded-full bg-surface-muted px-2.5 py-1 font-malayalam text-gold">
+              <span
+                className={`rounded-full px-2.5 py-1 font-malayalam font-medium ${
+                  articleCategoryBadge[article.category] ?? badgeFallback
+                }`}
+              >
                 {article.category}
               </span>
               <span className="font-malayalam text-muted-foreground">

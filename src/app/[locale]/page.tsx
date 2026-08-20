@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getServices, getShowcaseItems, getSiteSettings } from "@/lib/content";
 import { getDictionary, isLocale, defaultLocale } from "@/lib/locale";
+import { badgeFallback, workTypeBadge } from "@/lib/badgeColors";
 
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const { locale: rawLocale } = await params;
@@ -15,10 +16,20 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   ]);
 
   const featured = showcaseItems.filter((item) => item.featured).slice(0, 3);
+  const cardAccents = ["border-t-accent", "border-t-teal", "border-t-gold"];
 
   return (
     <div>
-      <section className="mx-auto max-w-5xl px-6 py-20 text-center">
+      <section className="relative overflow-hidden text-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(60% 50% at 20% 20%, color-mix(in oklab, var(--accent) 12%, transparent) 0%, transparent 70%), radial-gradient(55% 45% at 85% 15%, color-mix(in oklab, var(--teal) 14%, transparent) 0%, transparent 70%), radial-gradient(50% 40% at 60% 90%, color-mix(in oklab, var(--gold) 12%, transparent) 0%, transparent 70%)",
+          }}
+        />
+        <div className="mx-auto max-w-5xl px-6 py-20">
         <h1 className="font-serif text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           {settings.businessName}
         </h1>
@@ -41,6 +52,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             {dict.home.seeWork}
           </Link>
         </div>
+        </div>
       </section>
 
       <section className="border-t border-border bg-surface-muted">
@@ -49,11 +61,11 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             {dict.home.servicesHeading}
           </h2>
           <div className="mt-8 grid gap-6 sm:grid-cols-3">
-            {services.map((service) => (
+            {services.map((service, index) => (
               <Link
                 key={service.slug}
                 href={`/${locale}/services#${service.slug}`}
-                className="rounded-lg border border-border bg-surface p-6 transition-colors hover:border-accent"
+                className={`rounded-lg border border-t-4 border-border bg-surface p-6 transition-transform hover:-translate-y-0.5 ${cardAccents[index % cardAccents.length]}`}
               >
                 <h3 className="font-serif text-lg font-semibold text-foreground">{service.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{service.summary}</p>
@@ -93,7 +105,13 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
                 </div>
                 <div className="p-4">
                   <h3 className="font-serif font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-1 text-xs uppercase tracking-wide text-gold">{item.workType}</p>
+                  <span
+                    className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-medium uppercase tracking-wide ${
+                      workTypeBadge[item.workType] ?? badgeFallback
+                    }`}
+                  >
+                    {item.workType}
+                  </span>
                 </div>
               </div>
             ))}

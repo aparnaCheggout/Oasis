@@ -1,15 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf6f0;
+  --background: #fbf1e2;
   --foreground: #2a2019;
   --surface: #ffffff;
-  --surface-muted: #f2e9dd;
-  --border: #e4d7c3;
-  --accent: #8a3324;
+  --surface-muted: #f6e6c8;
+  --border: #ecd6a8;
+  --accent: #c1442c;
   --accent-foreground: #ffffff;
-  --gold: #b8863b;
-  --muted-foreground: #6b5d4f;
+  --gold: #ce8f1a;
+  --teal: #157b73;
+  --teal-foreground: #ffffff;
+  --plum: #7d3f8f;
+  --plum-foreground: #ffffff;
+  --muted-foreground: #7a6a52;
 }
 
 @theme inline {
@@ -21,6 +25,10 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-gold: var(--gold);
+  --color-teal: var(--teal);
+  --color-teal-foreground: var(--teal-foreground);
+  --color-plum: var(--plum);
+  --color-plum-foreground: var(--plum-foreground);
   --color-muted-foreground: var(--muted-foreground);
   --font-sans: var(--font-body);
   --font-serif: var(--font-heading);
@@ -29,15 +37,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1c1611;
-    --foreground: #f2e9dd;
-    --surface: #241d17;
-    --surface-muted: #2b2219;
-    --border: #3d3226;
-    --accent: #d97a5f;
-    --accent-foreground: #1c1611;
-    --gold: #d4a75a;
-    --muted-foreground: #b3a08a;
+    --background: #201712;
+    --foreground: #f6e6c8;
+    --surface: #2a1f18;
+    --surface-muted: #33261c;
+    --border: #4a3826;
+    --accent: #ea7355;
+    --accent-foreground: #201712;
+    --gold: #eab54a;
+    --teal: #4fc2b6;
+    --teal-foreground: #142320;
+    --plum: #c98cdb;
+    --plum-foreground: #241329;
+    --muted-foreground: #cbb593;
   }
 }
 

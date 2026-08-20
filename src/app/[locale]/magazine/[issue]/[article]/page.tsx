@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getArticle, getMagazineIssue } from "@/lib/content";
 import { getDictionary, isLocale, defaultLocale } from "@/lib/locale";
 import { formatMalayalamDate } from "@/lib/date";
+import { articleCategoryBadge, badgeFallback } from "@/lib/badgeColors";
 
 export async function generateMetadata({
   params,
@@ -33,7 +34,11 @@ export default async function ArticlePage({
       </Link>
 
       <div className="mt-6 flex flex-wrap items-center gap-3 text-xs">
-        <span className="rounded-full bg-surface-muted px-2.5 py-1 font-malayalam text-gold">
+        <span
+          className={`rounded-full px-2.5 py-1 font-malayalam font-medium ${
+            articleCategoryBadge[article.category] ?? badgeFallback
+          }`}
+        >
           {article.category}
         </span>
         <span className="font-malayalam text-muted-foreground">
