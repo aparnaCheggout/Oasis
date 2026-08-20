@@ -40,12 +40,18 @@ export type SiteSettings = {
 
 export type ArticleCategory = "ലേഖനം" | "കവിത" | "കഥ" | "കുറിപ്പ്";
 
+export type MagazineEditor = {
+  name: string;
+  role: string;
+};
+
 export type MagazineIssue = {
   slug: string;
   title: string;
   issueDate: string;
   coverImageUrl?: string;
   description?: string;
+  editors?: MagazineEditor[];
 };
 
 export type Article = {

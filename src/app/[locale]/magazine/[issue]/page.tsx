@@ -37,6 +37,18 @@ export default async function MagazineIssuePage({
         <p className="mt-3 font-malayalam text-muted-foreground">{issue.description}</p>
       )}
 
+      {issue.editors && issue.editors.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-1 border-t border-border pt-4 font-malayalam text-sm text-muted-foreground">
+          {issue.editors.map((editor) => (
+            <span key={editor.name}>
+              <span className="text-plum">{editor.role}</span>
+              {editor.role && editor.name ? ": " : ""}
+              <span className="text-foreground">{editor.name}</span>
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className="mt-10 space-y-6">
         {articles.map((article) => (
           <Link

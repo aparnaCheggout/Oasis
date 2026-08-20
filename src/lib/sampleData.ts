@@ -129,6 +129,7 @@ export const sampleMagazineIssues: MagazineIssue[] = [
     coverImageUrl: undefined,
     description:
       "സ്റ്റുഡിയോയിൽ ഓരോ മാസത്തെയും ലക്കം ഇവിടെ ഉണ്ടാക്കാം — പേര്, തീയതി, കവർ ചിത്രം എന്നിവ ചേർത്ത് തുടങ്ങുക.",
+    editors: [{ name: "എഡിറ്ററുടെ പേര്", role: "മുഖ്യ പത്രാധിപർ" }],
   },
 ];
 

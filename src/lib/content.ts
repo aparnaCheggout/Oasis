@@ -195,7 +195,7 @@ export async function getMagazineIssues(): Promise<MagazineIssue[]> {
 
   const data = await client.fetch(
     `*[_type == "magazineIssue"] | order(issueDate desc){
-      "slug": slug.current, title, issueDate, coverImage, description
+      "slug": slug.current, title, issueDate, coverImage, description, editors
     }`,
     {},
     FETCH_OPTIONS

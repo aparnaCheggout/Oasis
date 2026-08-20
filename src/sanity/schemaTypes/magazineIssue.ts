@@ -38,6 +38,28 @@ export default defineType({
       type: "text",
       rows: 3,
     }),
+    defineField({
+      name: "editors",
+      title: "Editorial team",
+      description: "Shown as a masthead on the issue page.",
+      type: "array",
+      of: [
+        {
+          type: "object",
+          name: "editor",
+          fields: [
+            defineField({ name: "name", title: "Name", type: "string" }),
+            defineField({
+              name: "role",
+              title: "Role",
+              description: 'e.g. "മുഖ്യ പത്രാധിപർ" (Chief Editor)',
+              type: "string",
+            }),
+          ],
+          preview: { select: { title: "name", subtitle: "role" } },
+        },
+      ],
+    }),
   ],
   orderings: [
     {
