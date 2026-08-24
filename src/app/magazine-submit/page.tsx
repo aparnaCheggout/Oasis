@@ -13,6 +13,7 @@ type ArticleSummary = {
   title: string;
   authorName: string;
   category: string;
+  body: string;
   publishedAt: string;
   slug: string;
   issueSlug: string;
@@ -40,6 +41,26 @@ export default function MagazineSubmitPage() {
   const [body, setBody] = useState("");
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  function startNew() {
+    setEditingId(null);
+    setTitle("");
+    setBody("");
+    setCategory(null);
+    setFormError("");
+    setScreen("form");
+  }
+
+  function startEdit(article: ArticleSummary) {
+    setEditingId(article._id);
+    setTitle(article.title);
+    setBody(article.body);
+    setCategory(article.category as Category);
+    setAuthorName(article.authorName);
+    setFormError("");
+    setScreen("form");
+  }
 
   useEffect(() => {
     fetch("/api/magazine-session")
@@ -109,10 +130,12 @@ export default function MagazineSubmitPage() {
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/magazine-submit", {
+      const res = await fetch(editingId ? "/api/magazine-edit" : "/api/magazine-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ authorName, category, title, body }),
+        body: JSON.stringify(
+          editingId ? { id: editingId, authorName, category, title, body } : { authorName, category, title, body }
+        ),
       });
       const data = await res.json();
 
@@ -124,7 +147,8 @@ export default function MagazineSubmitPage() {
       setTitle("");
       setBody("");
       setCategory(null);
-      setBanner("പ്രസിദ്ധീകരിച്ചു!");
+      setBanner(editingId ? "മാറ്റങ്ങൾ സേവ് ചെയ്തു!" : "പ്രസിദ്ധീകരിച്ചു!");
+      setEditingId(null);
       setScreen("list");
     } catch {
       setFormError("എന്തോ പിശക്. വീണ്ടും ശ്രമിക്കുക.");
@@ -191,13 +215,18 @@ export default function MagazineSubmitPage() {
     return (
       <div className="mx-auto max-w-lg px-6 py-12">
         <button
-          onClick={() => setScreen("list")}
+          onClick={() => {
+            setEditingId(null);
+            setScreen("list");
+          }}
           className="font-malayalam text-lg text-accent hover:underline"
         >
           &larr; തിരികെ
         </button>
 
-        <h1 className="mt-4 font-malayalam text-3xl font-semibold text-foreground">പുതിയ രചന</h1>
+        <h1 className="mt-4 font-malayalam text-3xl font-semibold text-foreground">
+          {editingId ? "രചന തിരുത്തുക" : "പുതിയ രചന"}
+        </h1>
 
         <form onSubmit={handleFormSubmit} className="mt-8 space-y-6">
           <div>
@@ -257,7 +286,11 @@ export default function MagazineSubmitPage() {
             disabled={submitting}
             className="w-full rounded-full bg-accent py-4 font-malayalam text-xl font-medium text-accent-foreground disabled:opacity-60"
           >
-            {submitting ? "അയക്കുന്നു…" : "പ്രസിദ്ധീകരിക്കുക"}
+            {submitting
+              ? "അയക്കുന്നു…"
+              : editingId
+                ? "സേവ് ചെയ്യുക"
+                : "പ്രസിദ്ധീകരിക്കുക"}
           </button>
         </form>
       </div>
@@ -278,7 +311,7 @@ export default function MagazineSubmitPage() {
       )}
 
       <button
-        onClick={() => setScreen("form")}
+        onClick={startNew}
         className="mt-6 w-full rounded-full bg-accent py-4 font-malayalam text-xl font-medium text-accent-foreground"
       >
         + പുതിയ രചന ചേർക്കുക
@@ -329,12 +362,20 @@ export default function MagazineSubmitPage() {
                 </button>
               )}
             </div>
-            <Link
-              href={`/ml/magazine/${article.issueSlug}/${article.slug}`}
-              className="mt-2 inline-block font-malayalam text-sm text-accent hover:underline"
-            >
-              കാണുക
-            </Link>
+            <div className="mt-2 flex gap-4">
+              <Link
+                href={`/ml/magazine/${article.issueSlug}/${article.slug}`}
+                className="font-malayalam text-sm text-accent hover:underline"
+              >
+                കാണുക
+              </Link>
+              <button
+                onClick={() => startEdit(article)}
+                className="font-malayalam text-sm text-accent hover:underline"
+              >
+                തിരുത്തുക
+              </button>
+            </div>
           </div>
         ))}
       </div>

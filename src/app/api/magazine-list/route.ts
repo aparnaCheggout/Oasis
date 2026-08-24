@@ -18,7 +18,7 @@ export async function GET() {
 
   const articles = await writeClient.fetch(
     `*[_type == "article"] | order(publishedAt desc)[0...30]{
-      _id, title, authorName, category, publishedAt,
+      _id, title, authorName, category, body, publishedAt,
       "slug": slug.current, "issueSlug": issue->slug.current
     }`
   );
