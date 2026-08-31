@@ -5,7 +5,7 @@
   "nav": {
     "services": "Services",
     "showcase": "Showcase",
-    "magazine": "Magazine",
+    "magazine": "Maruvakku",
     "about": "About",
     "contact": "Contact"
   },
@@ -36,14 +36,14 @@
     "metaTitle": "Showcase"
   },
   "magazine": {
-    "heading": "Magazine",
+    "heading": "Maruvakku",
     "intro": "A monthly magazine of articles, stories, and poems in Malayalam, from our contributors.",
     "allIssues": "All issues",
     "backToIssues": "Back to all issues",
     "backToIssue": "Back to issue",
     "by": "By",
     "noIssuesYet": "No issues published yet.",
-    "metaTitle": "Magazine",
+    "metaTitle": "Maruvakku",
     "comments": {
       "heading": "Comments",
       "name": "Your name",
