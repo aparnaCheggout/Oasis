@@ -17,8 +17,12 @@ export async function getOrCreateCurrentIssue(): Promise<CurrentIssue | null> {
 
   const issueInfo = getCurrentIssueInfo();
 
-  const existing = await writeClient.fetch<{ _id: string; coverImage?: { asset?: { _ref: string } } } | null>(
-    `*[_type == "magazineIssue" && slug.current == $slug][0]{ _id, coverImage }`,
+  const existing = await writeClient.fetch<{
+    _id: string;
+    title: string;
+    coverImage?: { asset?: { _ref: string } };
+  } | null>(
+    `*[_type == "magazineIssue" && slug.current == $slug][0]{ _id, title, coverImage }`,
     { slug: issueInfo.slug }
   );
 
@@ -26,7 +30,9 @@ export async function getOrCreateCurrentIssue(): Promise<CurrentIssue | null> {
     return {
       id: existing._id,
       slug: issueInfo.slug,
-      title: issueInfo.title,
+      // Use the issue's actual stored title (may differ in wording/order
+      // from a freshly computed one) rather than recomputing it.
+      title: existing.title,
       coverImageAssetId: existing.coverImage?.asset?._ref,
     };
   }
