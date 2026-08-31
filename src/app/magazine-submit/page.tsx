@@ -75,6 +75,15 @@ export default function MagazineSubmitPage() {
   const paragraphCount = body.split(/\n{2,}/).filter((p) => p.trim().length > 0).length;
   const anyImageUploading = images.some((img) => img.uploading);
 
+  const [currentIssue, setCurrentIssue] = useState<{
+    id: string;
+    title: string;
+    coverImageUrl: string | null;
+  } | null>(null);
+  const [issueCoverPreview, setIssueCoverPreview] = useState<string | null>(null);
+  const [issueCoverUploading, setIssueCoverUploading] = useState(false);
+  const [issueCoverError, setIssueCoverError] = useState("");
+
   function startNew() {
     setEditingId(null);
     setTitle("");
@@ -240,12 +249,75 @@ export default function MagazineSubmitPage() {
     }
   }
 
+  async function loadCurrentIssue() {
+    try {
+      const res = await fetch("/api/magazine-current-issue");
+      const data = await res.json();
+      if (res.ok) setCurrentIssue(data);
+    } catch {
+      // Cover section just won't show if this fails; not critical.
+    }
+  }
+
   useEffect(() => {
-    // Standard fetch-on-mount pattern: loadArticles sets loading/error state
-    // as part of the fetch.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (screen === "list") loadArticles();
+    // Standard fetch-on-mount pattern: loadArticles/loadCurrentIssue set
+    // loading/error state as part of the fetch.
+    if (screen === "list") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadArticles();
+      loadCurrentIssue();
+    }
   }, [screen]);
+
+  async function handleIssueCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !currentIssue) return;
+
+    setIssueCoverError("");
+
+    if (file.type !== "image/jpeg") {
+      setIssueCoverError("JPEG ചിത്രം മാത്രം അപ്‌ലോഡ് ചെയ്യുക");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setIssueCoverError("ചിത്രം വളരെ വലുതാണ് (5MB വരെ മാത്രം)");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setIssueCoverPreview(previewUrl);
+    setIssueCoverUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadRes = await fetch("/api/magazine-upload-photo", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+
+      if (!uploadRes.ok) {
+        setIssueCoverError(uploadData.error ?? "അപ്‌ലോഡ് പരാജയപ്പെട്ടു");
+        return;
+      }
+
+      const saveRes = await fetch("/api/magazine-issue-cover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ issueId: currentIssue.id, assetId: uploadData.assetId }),
+      });
+
+      if (!saveRes.ok) {
+        const saveData = await saveRes.json();
+        setIssueCoverError(saveData.error ?? "സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല");
+        return;
+      }
+
+      setCurrentIssue((prev) => (prev ? { ...prev, coverImageUrl: previewUrl } : prev));
+    } catch {
+      setIssueCoverError("അപ്‌ലോഡ് പരാജയപ്പെട്ടു");
+    } finally {
+      setIssueCoverUploading(false);
+    }
+  }
 
   async function handlePinSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -605,6 +677,43 @@ export default function MagazineSubmitPage() {
           <button onClick={() => setBanner("")} className="text-sm underline">
             അടയ്ക്കുക
           </button>
+        </div>
+      )}
+
+      {currentIssue && (
+        <div className="mt-6 rounded-lg border-2 border-border bg-surface p-4">
+          <p className="font-malayalam text-sm text-muted-foreground">ഈ ലക്കത്തിന്റെ കവർ ചിത്രം</p>
+          <p className="font-malayalam text-lg font-semibold text-foreground">{currentIssue.title}</p>
+          <div className="mt-3 flex items-center gap-4">
+            {(issueCoverPreview ?? currentIssue.coverImageUrl) ? (
+              // eslint-disable-next-line @next/next/no-img-element -- may be a local blob: preview
+              <img
+                src={issueCoverPreview ?? currentIssue.coverImageUrl ?? undefined}
+                alt=""
+                className="h-20 w-16 rounded-md object-cover"
+              />
+            ) : (
+              <div className="flex h-20 w-16 items-center justify-center rounded-md bg-surface-muted text-center font-malayalam text-xs text-muted-foreground">
+                കവർ ഇല്ല
+              </div>
+            )}
+            <label className="cursor-pointer rounded-full border-2 border-border bg-surface px-4 py-2 font-malayalam text-sm text-foreground">
+              {issueCoverUploading
+                ? "അപ്‌ലോഡ് ചെയ്യുന്നു…"
+                : currentIssue.coverImageUrl
+                  ? "കവർ മാറ്റുക"
+                  : "കവർ ചിത്രം ചേർക്കുക"}
+              <input
+                type="file"
+                accept="image/jpeg"
+                onChange={handleIssueCoverChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+          {issueCoverError && (
+            <p className="mt-2 font-malayalam text-sm text-accent">{issueCoverError}</p>
+          )}
         </div>
       )}
 

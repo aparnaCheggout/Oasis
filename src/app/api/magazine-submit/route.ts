@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { writeClient } from "@/sanity/lib/writeClient";
-import { getCurrentIssueInfo } from "@/lib/date";
+import { getOrCreateCurrentIssue } from "@/sanity/lib/currentIssue";
 import { buildBodyFromPlainTextAndImages, type SimpleImage } from "@/lib/portableText";
 import type { ArticleCategory, ArticleTitleStyle } from "@/lib/types";
 
@@ -47,24 +47,9 @@ export async function POST(request: Request) {
     return Response.json({ error: "വിഭാഗം തിരഞ്ഞെടുക്കുക" }, { status: 400 });
   }
 
-  const issueInfo = getCurrentIssueInfo();
-  let issueId: string;
-
-  const existingIssue = await writeClient.fetch<{ _id: string } | null>(
-    `*[_type == "magazineIssue" && slug.current == $slug][0]{ _id }`,
-    { slug: issueInfo.slug }
-  );
-
-  if (existingIssue) {
-    issueId = existingIssue._id;
-  } else {
-    const created = await writeClient.create({
-      _type: "magazineIssue",
-      title: issueInfo.title,
-      slug: { _type: "slug", current: issueInfo.slug },
-      issueDate: issueInfo.issueDate,
-    });
-    issueId = created._id;
+  const issue = await getOrCreateCurrentIssue();
+  if (!issue) {
+    return Response.json({ error: "Submission form isn't set up yet." }, { status: 500 });
   }
 
   const article = await writeClient.create({
@@ -77,14 +62,14 @@ export async function POST(request: Request) {
       ? { authorPhoto: { _type: "image", asset: { _type: "reference", _ref: authorPhotoAssetId } } }
       : {}),
     category,
-    issue: { _type: "reference", _ref: issueId },
+    issue: { _type: "reference", _ref: issue.id },
     body: buildBodyFromPlainTextAndImages(body.trim(), images ?? []),
     publishedAt: new Date().toISOString(),
   });
 
   return Response.json({
     ok: true,
-    issueSlug: issueInfo.slug,
+    issueSlug: issue.slug,
     articleSlug: article.slug.current,
   });
 }
