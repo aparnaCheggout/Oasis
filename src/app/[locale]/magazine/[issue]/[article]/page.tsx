@@ -5,7 +5,7 @@ import { getArticle, getComments, getMagazineIssue } from "@/lib/content";
 import { getDictionary, isLocale, defaultLocale } from "@/lib/locale";
 import { formatMalayalamDate } from "@/lib/date";
 import { articleCategoryBadge, badgeFallback } from "@/lib/badgeColors";
-import { getTitleStyleClass } from "@/lib/titleStyles";
+import { getTitleStyleClass, RichTitleText } from "@/lib/titleStyles";
 import ArticleBody from "@/components/ArticleBody";
 import CommentsSection from "@/components/CommentsSection";
 
@@ -14,7 +14,7 @@ export async function generateMetadata({
 }: PageProps<"/[locale]/magazine/[issue]/[article]">) {
   const { issue: issueSlug, article: articleSlug } = await params;
   const article = await getArticle(issueSlug, articleSlug);
-  return { title: article?.title };
+  return { title: article?.titlePlain };
 }
 
 export default async function ArticlePage({
@@ -50,7 +50,9 @@ export default async function ArticlePage({
         <span className="text-muted-foreground">{formatMalayalamDate(article.publishedAt)}</span>
       </div>
 
-      <h1 className={`mt-3 ${getTitleStyleClass(article.titleStyle)}`}>{article.title}</h1>
+      <h1 className={`mt-3 ${getTitleStyleClass(article.titleStyle)}`}>
+        <RichTitleText title={article.title} />
+      </h1>
 
       <div className="mt-4 flex items-center gap-3">
         {article.authorPhotoUrl && (

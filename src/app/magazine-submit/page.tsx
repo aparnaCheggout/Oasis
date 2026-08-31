@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatMalayalamDate } from "@/lib/date";
 import { urlForImage } from "@/sanity/lib/image";
-import { parseBodyToPlainTextAndImages, type ArticleBodyValue } from "@/lib/portableText";
+import {
+  domToTitle,
+  parseBodyToPlainTextAndImages,
+  titleToHtml,
+  titleToPlainText,
+  type ArticleBodyValue,
+  type RichTitle,
+} from "@/lib/portableText";
 import { titleStyleLabels } from "@/lib/titleStyles";
 import type { ArticleTitleStyle } from "@/lib/types";
 
@@ -16,7 +23,8 @@ const AUTHOR_STORAGE_KEY = "magazine_author_name";
 
 type ArticleSummary = {
   _id: string;
-  title: string;
+  title: RichTitle;
+  titlePlain: string;
   titleStyle?: ArticleTitleStyle;
   authorName: string;
   authorPhotoUrl?: string;
@@ -60,7 +68,8 @@ export default function MagazineSubmitPage() {
   );
   const [category, setCategory] = useState<Category | null>(null);
   const [titleStyle, setTitleStyle] = useState<ArticleTitleStyle>("default");
-  const [title, setTitle] = useState("");
+  const [initialTitleHtml, setInitialTitleHtml] = useState("");
+  const titleRef = useRef<HTMLDivElement>(null);
   const [body, setBody] = useState("");
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -86,7 +95,7 @@ export default function MagazineSubmitPage() {
 
   function startNew() {
     setEditingId(null);
-    setTitle("");
+    setInitialTitleHtml("");
     setBody("");
     setCategory(null);
     setTitleStyle("default");
@@ -102,7 +111,7 @@ export default function MagazineSubmitPage() {
     const parsed = parseBodyToPlainTextAndImages(article.body);
 
     setEditingId(article._id);
-    setTitle(article.title);
+    setInitialTitleHtml(titleToHtml(article.title));
     setBody(parsed.text);
     setCategory(article.category as Category);
     setTitleStyle(article.titleStyle ?? "default");
@@ -346,7 +355,9 @@ export default function MagazineSubmitPage() {
     e.preventDefault();
     setFormError("");
 
-    if (!authorName.trim() || !category || !title.trim() || !body.trim()) {
+    const title = titleRef.current ? domToTitle(titleRef.current) : [];
+
+    if (!authorName.trim() || !category || !titleToPlainText(title).trim() || !body.trim()) {
       setFormError("എല്ലാ വിവരങ്ങളും പൂരിപ്പിക്കുക");
       return;
     }
@@ -384,7 +395,7 @@ export default function MagazineSubmitPage() {
         return;
       }
 
-      setTitle("");
+      setInitialTitleHtml("");
       setBody("");
       setCategory(null);
       setImages([]);
@@ -527,11 +538,37 @@ export default function MagazineSubmitPage() {
 
           <div>
             <label className="block font-malayalam text-xl text-foreground">തലക്കെട്ട്</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mt-2 w-full rounded-lg border-2 border-border bg-surface px-4 py-4 font-malayalam text-xl text-foreground focus:border-accent focus:outline-none"
+            <p className="mt-1 font-malayalam text-sm text-muted-foreground">
+              വാക്കുകൾ തിരഞ്ഞെടുത്ത് വേണമെങ്കിൽ കട്ടിയാക്കുകയോ ചരിച്ചെഴുതുകയോ ചെയ്യാം.
+            </p>
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  document.execCommand("bold");
+                }}
+                className="rounded-md border-2 border-border bg-surface px-4 py-2 font-bold text-foreground"
+              >
+                B
+              </button>
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  document.execCommand("italic");
+                }}
+                className="rounded-md border-2 border-border bg-surface px-4 py-2 italic text-foreground"
+              >
+                I
+              </button>
+            </div>
+            <div
+              ref={titleRef}
+              contentEditable
+              suppressContentEditableWarning
+              dangerouslySetInnerHTML={{ __html: initialTitleHtml }}
+              className="mt-2 min-h-14 w-full rounded-lg border-2 border-border bg-surface px-4 py-4 font-malayalam text-xl text-foreground focus:border-accent focus:outline-none"
             />
           </div>
 
@@ -749,7 +786,7 @@ export default function MagazineSubmitPage() {
                 <div>
                   <p className="font-malayalam text-xs text-gold">{article.category}</p>
                   <h2 className="mt-1 font-malayalam text-lg font-semibold text-foreground">
-                    {article.title}
+                    {article.titlePlain}
                   </h2>
                   <p className="mt-1 font-malayalam text-sm text-muted-foreground">
                     {article.authorName} · {formatMalayalamDate(article.publishedAt)}

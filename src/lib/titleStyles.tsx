@@ -1,4 +1,5 @@
 import type { ArticleTitleStyle } from "./types";
+import type { RichTitle } from "./portableText";
 
 export const titleStyleClasses: Record<ArticleTitleStyle, string> = {
   default: "font-malayalam text-3xl font-semibold text-foreground",
@@ -16,4 +17,23 @@ export const titleStyleLabels: Record<ArticleTitleStyle, string> = {
 
 export function getTitleStyleClass(style: ArticleTitleStyle | undefined): string {
   return titleStyleClasses[style ?? "default"];
+}
+
+// Renders a rich title's bold/italic marks. The overall look (size,
+// color, alignment) still comes from titleStyleClasses on the wrapping
+// element — this only handles the editor's inline emphasis.
+export function RichTitleText({ title }: { title: RichTitle | undefined }) {
+  const block = title?.[0];
+  if (!block || block._type !== "block") return null;
+
+  return (
+    <>
+      {block.children.map((span) => {
+        let node: React.ReactNode = span.text;
+        if (span.marks.includes("em")) node = <em>{node}</em>;
+        if (span.marks.includes("strong")) node = <strong>{node}</strong>;
+        return <span key={span._key}>{node}</span>;
+      })}
+    </>
+  );
 }

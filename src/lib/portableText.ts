@@ -125,3 +125,86 @@ export function parseBodyToPlainTextAndImages(blocks: ArticleBodyValue | undefin
 
   return { text: paragraphs.join("\n\n"), images };
 }
+
+// A title is a single Portable Text block with only bold/italic marks
+// allowed (no images, no multiple paragraphs) — enough to let the editor
+// decide how the title itself reads, without the full body editor.
+export type RichTitle = PortableTextBlock[];
+
+const TITLE_MARK_TAGS: Record<string, string> = { strong: "STRONG", em: "EM" };
+
+export function titleToPlainText(title: RichTitle | undefined): string {
+  return portableTextToPlainText(title as ArticleBodyValue | undefined);
+}
+
+export function plainTextToTitle(text: string): RichTitle {
+  const trimmed = text.trim();
+  return trimmed ? [textBlock(trimmed)] : [];
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Renders a title's marks as inline HTML, for pre-filling the simple
+// form's rich text box when editing an existing piece.
+export function titleToHtml(title: RichTitle | undefined): string {
+  const block = title?.[0];
+  if (!block || block._type !== "block") return "";
+
+  return block.children
+    .map((span) => {
+      let html = escapeHtml(span.text);
+      if (span.marks.includes("em")) html = `<${TITLE_MARK_TAGS.em}>${html}</${TITLE_MARK_TAGS.em}>`;
+      if (span.marks.includes("strong")) {
+        html = `<${TITLE_MARK_TAGS.strong}>${html}</${TITLE_MARK_TAGS.strong}>`;
+      }
+      return html;
+    })
+    .join("");
+}
+
+// The inverse of titleToHtml: walks a contentEditable element's DOM after
+// editing and rebuilds a title block, tracking bold/italic from ancestor
+// <strong>/<em> (and legacy <b>/<i>) tags.
+export function domToTitle(container: HTMLElement): RichTitle {
+  const spans: PortableTextSpan[] = [];
+
+  function walk(node: ChildNode, marks: string[]) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent ?? "";
+      if (text.length > 0) {
+        spans.push({ _type: "span", _key: randomKey(), text, marks: [...marks] });
+      }
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+    const el = node as HTMLElement;
+    if (el.tagName === "BR") {
+      spans.push({ _type: "span", _key: randomKey(), text: " ", marks: [] });
+      return;
+    }
+
+    let nextMarks = marks;
+    if (el.tagName === "STRONG" || el.tagName === "B") nextMarks = [...marks, "strong"];
+    else if (el.tagName === "EM" || el.tagName === "I") nextMarks = [...marks, "em"];
+
+    el.childNodes.forEach((child) => walk(child, nextMarks));
+  }
+
+  container.childNodes.forEach((child) => walk(child, []));
+
+  const nonEmpty = spans.filter((span) => span.text.length > 0);
+  if (nonEmpty.length === 0) return [];
+
+  return [
+    {
+      _type: "block",
+      _key: randomKey(),
+      style: "normal",
+      markDefs: [],
+      children: nonEmpty,
+    },
+  ];
+}

@@ -6,7 +6,7 @@
 
 import type { RawService, RawShowcaseItem, RawSiteSettings, RawTestimonial } from "./content";
 import type { Article, MagazineIssue } from "./types";
-import { plainTextToPortableText } from "./portableText";
+import { plainTextToPortableText, plainTextToTitle } from "./portableText";
 
 export const sampleSiteSettings: RawSiteSettings = {
   businessName: "Oasis Publishing House",
@@ -138,7 +138,8 @@ export const sampleArticles: Article[] = [
   {
     id: "sample-article",
     slug: "sample-article",
-    title: "ആദ്യ ലേഖനം ചേർക്കുക",
+    title: plainTextToTitle("ആദ്യ ലേഖനം ചേർക്കുക"),
+    titlePlain: "ആദ്യ ലേഖനം ചേർക്കുക",
     titleStyle: "default",
     authorName: "എഴുത്തുകാരന്റെ പേര്",
     category: "കുറിപ്പ്",

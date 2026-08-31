@@ -59,7 +59,8 @@ export type ArticleTitleStyle = "default" | "large" | "elegant" | "colorful";
 export type Article = {
   id: string;
   slug: string;
-  title: string;
+  title: import("./portableText").RichTitle;
+  titlePlain: string;
   titleStyle?: ArticleTitleStyle;
   authorName: string;
   authorPhotoUrl?: string;

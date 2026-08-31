@@ -1,7 +1,12 @@
 import { cookies } from "next/headers";
 import { writeClient } from "@/sanity/lib/writeClient";
 import { getOrCreateCurrentIssue } from "@/sanity/lib/currentIssue";
-import { buildBodyFromPlainTextAndImages, type SimpleImage } from "@/lib/portableText";
+import {
+  buildBodyFromPlainTextAndImages,
+  titleToPlainText,
+  type RichTitle,
+  type SimpleImage,
+} from "@/lib/portableText";
 import type { ArticleCategory, ArticleTitleStyle } from "@/lib/types";
 
 const COOKIE_NAME = "magazine_session";
@@ -26,7 +31,7 @@ export async function POST(request: Request) {
 
   const { title, authorName, category, body, titleStyle, authorPhotoAssetId, images } =
     (await request.json()) as {
-      title?: string;
+      title?: RichTitle;
       authorName?: string;
       category?: string;
       body?: string;
@@ -35,7 +40,7 @@ export async function POST(request: Request) {
       images?: SimpleImage[];
     };
 
-  if (!title?.trim() || !authorName?.trim() || !body?.trim()) {
+  if (!titleToPlainText(title).trim() || !authorName?.trim() || !body?.trim()) {
     return Response.json({ error: "എല്ലാ വിവരങ്ങളും പൂരിപ്പിക്കുക" }, { status: 400 });
   }
 
@@ -54,7 +59,7 @@ export async function POST(request: Request) {
 
   const article = await writeClient.create({
     _type: "article",
-    title: title.trim(),
+    title,
     titleStyle: titleStyle ?? "default",
     slug: { _type: "slug", current: randomSlug("piece") },
     authorName: authorName.trim(),

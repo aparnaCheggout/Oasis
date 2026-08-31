@@ -1,6 +1,11 @@
 import { cookies } from "next/headers";
 import { writeClient } from "@/sanity/lib/writeClient";
-import { buildBodyFromPlainTextAndImages, type SimpleImage } from "@/lib/portableText";
+import {
+  buildBodyFromPlainTextAndImages,
+  titleToPlainText,
+  type RichTitle,
+  type SimpleImage,
+} from "@/lib/portableText";
 import type { ArticleCategory, ArticleTitleStyle } from "@/lib/types";
 
 const COOKIE_NAME = "magazine_session";
@@ -22,7 +27,7 @@ export async function POST(request: Request) {
   const { id, title, authorName, category, body, titleStyle, authorPhotoAssetId, images } =
     (await request.json()) as {
       id?: string;
-      title?: string;
+      title?: RichTitle;
       authorName?: string;
       category?: string;
       body?: string;
@@ -31,7 +36,7 @@ export async function POST(request: Request) {
       images?: SimpleImage[];
     };
 
-  if (!id || !title?.trim() || !authorName?.trim() || !body?.trim()) {
+  if (!id || !titleToPlainText(title).trim() || !authorName?.trim() || !body?.trim()) {
     return Response.json({ error: "എല്ലാ വിവരങ്ങളും പൂരിപ്പിക്കുക" }, { status: 400 });
   }
 
@@ -46,7 +51,7 @@ export async function POST(request: Request) {
   await writeClient
     .patch(id)
     .set({
-      title: title.trim(),
+      title,
       titleStyle: titleStyle ?? "default",
       authorName: authorName.trim(),
       ...(authorPhotoAssetId

@@ -1,6 +1,7 @@
 import { client } from "@/sanity/lib/client";
 import { urlForImage } from "@/sanity/lib/image";
 import type { Locale } from "./locale";
+import { titleToPlainText } from "./portableText";
 import {
   sampleArticles,
   sampleMagazineIssues,
@@ -233,6 +234,7 @@ export async function getArticlesForIssue(issueSlug: string): Promise<Article[]>
 
   return data.map((item: Record<string, unknown>) => ({
     ...item,
+    titlePlain: titleToPlainText(item.title as never),
     authorPhotoUrl: urlForImage(item.authorPhoto as never)?.width(200).url(),
   }));
 }

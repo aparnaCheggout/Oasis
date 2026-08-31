@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { writeClient } from "@/sanity/lib/writeClient";
 import { urlForImage } from "@/sanity/lib/image";
+import { titleToPlainText } from "@/lib/portableText";
 
 const COOKIE_NAME = "magazine_session";
 
@@ -26,6 +27,7 @@ export async function GET() {
 
   const articles = rawArticles.map((article: Record<string, unknown>) => ({
     ...article,
+    titlePlain: titleToPlainText(article.title as never),
     authorPhotoUrl: urlForImage(article.authorPhoto as never)?.width(100).url(),
   }));
 

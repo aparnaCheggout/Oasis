@@ -5,6 +5,7 @@ import { getArticlesForIssue, getMagazineIssue } from "@/lib/content";
 import { getDictionary, isLocale, defaultLocale } from "@/lib/locale";
 import { formatMalayalamMonthYear } from "@/lib/date";
 import { articleCategoryBadge, badgeFallback } from "@/lib/badgeColors";
+import { RichTitleText } from "@/lib/titleStyles";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/magazine/[issue]">) {
   const { issue: issueSlug } = await params;
@@ -79,7 +80,7 @@ export default async function MagazineIssuePage({
               </span>
             </div>
             <h2 className="mt-3 font-malayalam text-xl font-semibold text-foreground">
-              {article.title}
+              <RichTitleText title={article.title} />
             </h2>
             {article.excerpt && (
               <p className="mt-2 font-malayalam text-sm text-muted-foreground">{article.excerpt}</p>

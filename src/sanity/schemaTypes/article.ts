@@ -1,5 +1,16 @@
 import { defineField, defineType } from "sanity";
 
+// Extracts plain text from a rich title (array of Portable Text blocks) —
+// used for slug generation and the document list preview, since neither
+// can work with rich content directly.
+function titlePlainText(title: unknown): string {
+  if (!Array.isArray(title)) return "";
+  return title
+    .filter((block) => block?._type === "block")
+    .map((block) => (block.children ?? []).map((span: { text?: string }) => span.text ?? "").join(""))
+    .join(" ");
+}
+
 export default defineType({
   name: "article",
   title: "Article",
@@ -8,8 +19,24 @@ export default defineType({
     defineField({
       name: "title",
       title: "Title",
-      type: "string",
-      validation: (Rule) => Rule.required(),
+      description: "Select text and use the toolbar to bold or italicize parts of the title.",
+      type: "array",
+      of: [
+        {
+          type: "block",
+          styles: [{ title: "Normal", value: "normal" }],
+          lists: [],
+          marks: {
+            decorators: [
+              { title: "Bold", value: "strong" },
+              { title: "Italic", value: "em" },
+            ],
+            annotations: [],
+          },
+        },
+      ],
+      validation: (Rule) =>
+        Rule.required().custom((value) => (titlePlainText(value).trim() ? true : "Title is required")),
     }),
     defineField({
       name: "titleStyle",
@@ -31,7 +58,9 @@ export default defineType({
       name: "slug",
       title: "Slug",
       type: "slug",
-      options: { source: "title" },
+      options: {
+        source: (doc) => titlePlainText((doc as { title?: unknown }).title),
+      },
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -114,5 +143,8 @@ export default defineType({
   ],
   preview: {
     select: { title: "title", subtitle: "authorName", media: "authorPhoto" },
+    prepare({ title, subtitle, media }) {
+      return { title: titlePlainText(title) || "(untitled)", subtitle, media };
+    },
   },
 });
