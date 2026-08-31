@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getArticlesForIssue, getMagazineIssue } from "@/lib/content";
@@ -64,7 +65,16 @@ export default async function MagazineIssuePage({
               >
                 {article.category}
               </span>
-              <span className="font-malayalam text-muted-foreground">
+              <span className="flex items-center gap-2 font-malayalam text-muted-foreground">
+                {article.authorPhotoUrl && (
+                  <Image
+                    src={article.authorPhotoUrl}
+                    alt={article.authorName}
+                    width={20}
+                    height={20}
+                    className="h-5 w-5 rounded-full object-cover"
+                  />
+                )}
                 {dict.magazine.by} {article.authorName}
               </span>
             </div>

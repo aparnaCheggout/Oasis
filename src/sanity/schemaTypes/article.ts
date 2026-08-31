@@ -12,6 +12,22 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "titleStyle",
+      title: "Title style",
+      description: "Visual style for the title on the article page.",
+      type: "string",
+      options: {
+        list: [
+          { title: "Default", value: "default" },
+          { title: "Large", value: "large" },
+          { title: "Elegant (centered)", value: "elegant" },
+          { title: "Colorful", value: "colorful" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "default",
+    }),
+    defineField({
       name: "slug",
       title: "Slug",
       type: "slug",
@@ -23,7 +39,14 @@ export default defineType({
       title: "Author name",
       description: "The contributor who wrote this piece.",
       type: "string",
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().max(100),
+    }),
+    defineField({
+      name: "authorPhoto",
+      title: "Author photo",
+      description: "JPEG photo of the contributor, shown alongside their name.",
+      type: "image",
+      options: { hotspot: true },
     }),
     defineField({
       name: "category",
@@ -56,8 +79,22 @@ export default defineType({
     defineField({
       name: "body",
       title: "Body",
-      type: "text",
-      rows: 16,
+      description: "The full piece. Add images (e.g. caricatures) inline using the image button in the toolbar.",
+      type: "array",
+      of: [
+        { type: "block" },
+        {
+          type: "image",
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: "caption",
+              title: "Caption",
+              type: "string",
+            }),
+          ],
+        },
+      ],
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -76,6 +113,6 @@ export default defineType({
     },
   ],
   preview: {
-    select: { title: "title", subtitle: "authorName" },
+    select: { title: "title", subtitle: "authorName", media: "authorPhoto" },
   },
 });

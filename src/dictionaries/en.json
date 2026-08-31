@@ -43,7 +43,18 @@
     "backToIssue": "Back to issue",
     "by": "By",
     "noIssuesYet": "No issues published yet.",
-    "metaTitle": "Magazine"
+    "metaTitle": "Magazine",
+    "comments": {
+      "heading": "Comments",
+      "name": "Your name",
+      "text": "Your comment",
+      "send": "Post comment",
+      "sending": "Sending…",
+      "success": "Thanks! Your comment will appear once it's reviewed.",
+      "genericError": "Something went wrong. Please try again.",
+      "requiredError": "Please fill in your name and comment.",
+      "empty": "No comments yet — be the first."
+    }
   },
   "about": {
     "heading": "About",

@@ -54,13 +54,25 @@ export type MagazineIssue = {
   editors?: MagazineEditor[];
 };
 
+export type ArticleTitleStyle = "default" | "large" | "elegant" | "colorful";
+
 export type Article = {
+  id: string;
   slug: string;
   title: string;
+  titleStyle?: ArticleTitleStyle;
   authorName: string;
+  authorPhotoUrl?: string;
   category: ArticleCategory;
   excerpt?: string;
-  body: string;
+  body: import("./portableText").ArticleBodyValue;
   publishedAt: string;
   issueSlug: string;
+};
+
+export type Comment = {
+  id: string;
+  authorName: string;
+  text: string;
+  createdAt: string;
 };

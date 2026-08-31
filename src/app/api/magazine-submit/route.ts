@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { writeClient } from "@/sanity/lib/writeClient";
 import { getCurrentIssueInfo } from "@/lib/date";
-import type { ArticleCategory } from "@/lib/types";
+import { plainTextToPortableText } from "@/lib/portableText";
+import type { ArticleCategory, ArticleTitleStyle } from "@/lib/types";
 
 const COOKIE_NAME = "magazine_session";
 const VALID_CATEGORIES: ArticleCategory[] = ["ലേഖനം", "കവിത", "കഥ", "കുറിപ്പ്"];
@@ -23,15 +24,22 @@ export async function POST(request: Request) {
     return Response.json({ error: "Submission form isn't set up yet." }, { status: 500 });
   }
 
-  const { title, authorName, category, body } = (await request.json()) as {
-    title?: string;
-    authorName?: string;
-    category?: string;
-    body?: string;
-  };
+  const { title, authorName, category, body, titleStyle, authorPhotoAssetId } =
+    (await request.json()) as {
+      title?: string;
+      authorName?: string;
+      category?: string;
+      body?: string;
+      titleStyle?: ArticleTitleStyle;
+      authorPhotoAssetId?: string;
+    };
 
   if (!title?.trim() || !authorName?.trim() || !body?.trim()) {
     return Response.json({ error: "എല്ലാ വിവരങ്ങളും പൂരിപ്പിക്കുക" }, { status: 400 });
+  }
+
+  if (authorName.length > 100) {
+    return Response.json({ error: "പേര് വളരെ നീണ്ടതാണ്" }, { status: 400 });
   }
 
   if (!category || !VALID_CATEGORIES.includes(category as ArticleCategory)) {
@@ -61,11 +69,15 @@ export async function POST(request: Request) {
   const article = await writeClient.create({
     _type: "article",
     title: title.trim(),
+    titleStyle: titleStyle ?? "default",
     slug: { _type: "slug", current: randomSlug("piece") },
     authorName: authorName.trim(),
+    ...(authorPhotoAssetId
+      ? { authorPhoto: { _type: "image", asset: { _type: "reference", _ref: authorPhotoAssetId } } }
+      : {}),
     category,
     issue: { _type: "reference", _ref: issueId },
-    body: body.trim(),
+    body: plainTextToPortableText(body.trim()),
     publishedAt: new Date().toISOString(),
   });
 

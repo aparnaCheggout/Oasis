@@ -1,19 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { formatMalayalamDate } from "@/lib/date";
+import { hasInlineImages, portableTextToPlainText, type ArticleBodyValue } from "@/lib/portableText";
+import { titleStyleLabels } from "@/lib/titleStyles";
+import type { ArticleTitleStyle } from "@/lib/types";
 
 type Category = "കവിത" | "കഥ" | "ലേഖനം" | "കുറിപ്പ്";
 const CATEGORIES: Category[] = ["കവിത", "കഥ", "ലേഖനം", "കുറിപ്പ്"];
+const TITLE_STYLES = Object.keys(titleStyleLabels) as ArticleTitleStyle[];
 const AUTHOR_STORAGE_KEY = "magazine_author_name";
 
 type ArticleSummary = {
   _id: string;
   title: string;
+  titleStyle?: ArticleTitleStyle;
   authorName: string;
+  authorPhotoUrl?: string;
   category: string;
-  body: string;
+  body: ArticleBodyValue;
   publishedAt: string;
   slug: string;
   issueSlug: string;
@@ -37,29 +44,86 @@ export default function MagazineSubmitPage() {
     typeof window === "undefined" ? "" : window.localStorage.getItem(AUTHOR_STORAGE_KEY) ?? ""
   );
   const [category, setCategory] = useState<Category | null>(null);
+  const [titleStyle, setTitleStyle] = useState<ArticleTitleStyle>("default");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const [photoAssetId, setPhotoAssetId] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+
   function startNew() {
     setEditingId(null);
     setTitle("");
     setBody("");
     setCategory(null);
+    setTitleStyle("default");
+    setPhotoPreviewUrl(null);
+    setPhotoAssetId(null);
+    setPhotoError("");
     setFormError("");
     setScreen("form");
   }
 
   function startEdit(article: ArticleSummary) {
+    if (hasInlineImages(article.body)) {
+      setBanner("ഈ രചനയിൽ ചിത്രങ്ങൾ ഉണ്ട് — ഇത് സ്റ്റുഡിയോയിൽ മാത്രമേ തിരുത്താനാകൂ.");
+      return;
+    }
     setEditingId(article._id);
     setTitle(article.title);
-    setBody(article.body);
+    setBody(portableTextToPlainText(article.body));
     setCategory(article.category as Category);
+    setTitleStyle(article.titleStyle ?? "default");
     setAuthorName(article.authorName);
+    setPhotoPreviewUrl(article.authorPhotoUrl ?? null);
+    setPhotoAssetId(null);
+    setPhotoError("");
     setFormError("");
     setScreen("form");
+  }
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPhotoError("");
+
+    if (file.type !== "image/jpeg") {
+      setPhotoError("JPEG ചിത്രം മാത്രം അപ്‌ലോഡ് ചെയ്യുക");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError("ചിത്രം വളരെ വലുതാണ് (5MB വരെ മാത്രം)");
+      return;
+    }
+
+    setPhotoPreviewUrl(URL.createObjectURL(file));
+    setPhotoUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/magazine-upload-photo", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPhotoError(data.error ?? "അപ്‌ലോഡ് പരാജയപ്പെട്ടു");
+        setPhotoAssetId(null);
+        return;
+      }
+
+      setPhotoAssetId(data.assetId);
+    } catch {
+      setPhotoError("അപ്‌ലോഡ് പരാജയപ്പെട്ടു");
+      setPhotoAssetId(null);
+    } finally {
+      setPhotoUploading(false);
+    }
   }
 
   useEffect(() => {
@@ -129,13 +193,21 @@ export default function MagazineSubmitPage() {
     window.localStorage.setItem(AUTHOR_STORAGE_KEY, authorName.trim());
     setSubmitting(true);
 
+    const payload = {
+      ...(editingId ? { id: editingId } : {}),
+      authorName,
+      category,
+      titleStyle,
+      title,
+      body,
+      ...(photoAssetId ? { authorPhotoAssetId: photoAssetId } : {}),
+    };
+
     try {
       const res = await fetch(editingId ? "/api/magazine-edit" : "/api/magazine-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          editingId ? { id: editingId, authorName, category, title, body } : { authorName, category, title, body }
-        ),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
 
@@ -235,8 +307,33 @@ export default function MagazineSubmitPage() {
               type="text"
               value={authorName}
               onChange={(e) => setAuthorName(e.target.value)}
+              maxLength={100}
               className="mt-2 w-full rounded-lg border-2 border-border bg-surface px-4 py-4 font-malayalam text-xl text-foreground focus:border-accent focus:outline-none"
             />
+          </div>
+
+          <div>
+            <label className="block font-malayalam text-xl text-foreground">നിങ്ങളുടെ ഫോട്ടോ (JPEG)</label>
+            <div className="mt-2 flex items-center gap-4">
+              {photoPreviewUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- local blob: preview, not a Sanity/remote URL next/image can handle
+                <img
+                  src={photoPreviewUrl}
+                  alt=""
+                  className="h-16 w-16 rounded-full object-cover"
+                />
+              )}
+              <label className="cursor-pointer rounded-full border-2 border-border bg-surface px-4 py-2 font-malayalam text-sm text-foreground">
+                {photoUploading ? "അപ്‌ലോഡ് ചെയ്യുന്നു…" : "ഫോട്ടോ തിരഞ്ഞെടുക്കുക"}
+                <input
+                  type="file"
+                  accept="image/jpeg"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            {photoError && <p className="mt-2 font-malayalam text-sm text-accent">{photoError}</p>}
           </div>
 
           <div>
@@ -270,6 +367,26 @@ export default function MagazineSubmitPage() {
           </div>
 
           <div>
+            <label className="block font-malayalam text-xl text-foreground">തലക്കെട്ടിന്റെ രൂപം</label>
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              {TITLE_STYLES.map((style) => (
+                <button
+                  key={style}
+                  type="button"
+                  onClick={() => setTitleStyle(style)}
+                  className={`rounded-lg border-2 py-3 font-malayalam text-lg transition-colors ${
+                    titleStyle === style
+                      ? "border-accent bg-accent text-accent-foreground"
+                      : "border-border bg-surface text-foreground"
+                  }`}
+                >
+                  {titleStyleLabels[style]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
             <label className="block font-malayalam text-xl text-foreground">എഴുത്ത്</label>
             <textarea
               value={body}
@@ -283,7 +400,7 @@ export default function MagazineSubmitPage() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || photoUploading}
             className="w-full rounded-full bg-accent py-4 font-malayalam text-xl font-medium text-accent-foreground disabled:opacity-60"
           >
             {submitting
@@ -329,14 +446,25 @@ export default function MagazineSubmitPage() {
             className="rounded-lg border-2 border-border bg-surface p-4"
           >
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-malayalam text-xs text-gold">{article.category}</p>
-                <h2 className="mt-1 font-malayalam text-lg font-semibold text-foreground">
-                  {article.title}
-                </h2>
-                <p className="mt-1 font-malayalam text-sm text-muted-foreground">
-                  {article.authorName} · {formatMalayalamDate(article.publishedAt)}
-                </p>
+              <div className="flex gap-3">
+                {article.authorPhotoUrl && (
+                  <Image
+                    src={article.authorPhotoUrl}
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 shrink-0 rounded-full object-cover"
+                  />
+                )}
+                <div>
+                  <p className="font-malayalam text-xs text-gold">{article.category}</p>
+                  <h2 className="mt-1 font-malayalam text-lg font-semibold text-foreground">
+                    {article.title}
+                  </h2>
+                  <p className="mt-1 font-malayalam text-sm text-muted-foreground">
+                    {article.authorName} · {formatMalayalamDate(article.publishedAt)}
+                  </p>
+                </div>
               </div>
               {confirmingId === article._id ? (
                 <div className="flex shrink-0 gap-2">

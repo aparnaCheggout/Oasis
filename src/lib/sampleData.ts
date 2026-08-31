@@ -6,6 +6,7 @@
 
 import type { RawService, RawShowcaseItem, RawSiteSettings, RawTestimonial } from "./content";
 import type { Article, MagazineIssue } from "./types";
+import { plainTextToPortableText } from "./portableText";
 
 export const sampleSiteSettings: RawSiteSettings = {
   businessName: "Oasis Publishing House",
@@ -135,12 +136,16 @@ export const sampleMagazineIssues: MagazineIssue[] = [
 
 export const sampleArticles: Article[] = [
   {
+    id: "sample-article",
     slug: "sample-article",
     title: "ആദ്യ ലേഖനം ചേർക്കുക",
+    titleStyle: "default",
     authorName: "എഴുത്തുകാരന്റെ പേര്",
     category: "കുറിപ്പ്",
     excerpt: "ഓരോ രചനയും ഒരു ലക്കത്തിനോട് ബന്ധിപ്പിക്കുക.",
-    body: "സ്റ്റുഡിയോയിൽ Article എന്ന വിഭാഗത്തിൽ പോയി ഒരു പുതിയ രേഖ ഉണ്ടാക്കുക. തലക്കെട്ട്, എഴുത്തുകാരന്റെ പേര്, വിഭാഗം (ലേഖനം / കവിത / കഥ / കുറിപ്പ്), ഏത് ലക്കത്തിലാണ് എന്നത്, പിന്നെ മുഴുവൻ എഴുത്തും ചേർക്കുക.",
+    body: plainTextToPortableText(
+      "സ്റ്റുഡിയോയിൽ Article എന്ന വിഭാഗത്തിൽ പോയി ഒരു പുതിയ രേഖ ഉണ്ടാക്കുക. തലക്കെട്ട്, എഴുത്തുകാരന്റെ പേര്, വിഭാഗം (ലേഖനം / കവിത / കഥ / കുറിപ്പ്), ഏത് ലക്കത്തിലാണ് എന്നത്, പിന്നെ മുഴുവൻ എഴുത്തും ചേർക്കുക."
+    ),
     publishedAt: "2026-08-20T00:00:00.000Z",
     issueSlug: "sample-issue",
   },

@@ -11,6 +11,7 @@ import {
 } from "./sampleData";
 import type {
   Article,
+  Comment,
   MagazineIssue,
   Service,
   ShowcaseItem,
@@ -221,18 +222,36 @@ export async function getArticlesForIssue(issueSlug: string): Promise<Article[]>
 
   const data = await client.fetch(
     `*[_type == "article" && issue->slug.current == $issueSlug] | order(publishedAt desc){
-      "slug": slug.current, title, authorName, category, excerpt, body, publishedAt,
-      "issueSlug": issue->slug.current
+      "id": _id, "slug": slug.current, title, titleStyle, authorName, authorPhoto,
+      category, excerpt, body, publishedAt, "issueSlug": issue->slug.current
     }`,
     { issueSlug },
     FETCH_OPTIONS
   );
 
-  if (data?.length) return data;
-  return sampleArticles.filter((article) => article.issueSlug === issueSlug);
+  if (!data?.length) return sampleArticles.filter((article) => article.issueSlug === issueSlug);
+
+  return data.map((item: Record<string, unknown>) => ({
+    ...item,
+    authorPhotoUrl: urlForImage(item.authorPhoto as never)?.width(200).url(),
+  }));
 }
 
 export async function getArticle(issueSlug: string, articleSlug: string): Promise<Article | null> {
   const articles = await getArticlesForIssue(issueSlug);
   return articles.find((article) => article.slug === articleSlug) ?? null;
+}
+
+export async function getComments(articleId: string): Promise<Comment[]> {
+  if (!client) return [];
+
+  const data = await client.fetch(
+    `*[_type == "comment" && references($articleId) && approved == true] | order(createdAt desc){
+      "id": _id, authorName, text, createdAt
+    }`,
+    { articleId },
+    FETCH_OPTIONS
+  );
+
+  return data ?? [];
 }
