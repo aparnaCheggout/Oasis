@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatMalayalamDate } from "@/lib/date";
-import { hasInlineImages, portableTextToPlainText, type ArticleBodyValue } from "@/lib/portableText";
+import { urlForImage } from "@/sanity/lib/image";
+import { parseBodyToPlainTextAndImages, type ArticleBodyValue } from "@/lib/portableText";
 import { titleStyleLabels } from "@/lib/titleStyles";
 import type { ArticleTitleStyle } from "@/lib/types";
 
@@ -25,6 +26,20 @@ type ArticleSummary = {
   slug: string;
   issueSlug: string;
 };
+
+type BodyImage = {
+  key: string;
+  assetId: string | null;
+  previewUrl: string | null;
+  caption: string;
+  afterParagraph: number;
+  uploading: boolean;
+  error: string;
+};
+
+function newKey() {
+  return Math.random().toString(36).slice(2, 10);
+}
 
 type Screen = "checking" | "pin" | "list" | "form";
 
@@ -56,6 +71,10 @@ export default function MagazineSubmitPage() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState("");
 
+  const [images, setImages] = useState<BodyImage[]>([]);
+  const paragraphCount = body.split(/\n{2,}/).filter((p) => p.trim().length > 0).length;
+  const anyImageUploading = images.some((img) => img.uploading);
+
   function startNew() {
     setEditingId(null);
     setTitle("");
@@ -65,24 +84,34 @@ export default function MagazineSubmitPage() {
     setPhotoPreviewUrl(null);
     setPhotoAssetId(null);
     setPhotoError("");
+    setImages([]);
     setFormError("");
     setScreen("form");
   }
 
   function startEdit(article: ArticleSummary) {
-    if (hasInlineImages(article.body)) {
-      setBanner("ഈ രചനയിൽ ചിത്രങ്ങൾ ഉണ്ട് — ഇത് സ്റ്റുഡിയോയിൽ മാത്രമേ തിരുത്താനാകൂ.");
-      return;
-    }
+    const parsed = parseBodyToPlainTextAndImages(article.body);
+
     setEditingId(article._id);
     setTitle(article.title);
-    setBody(portableTextToPlainText(article.body));
+    setBody(parsed.text);
     setCategory(article.category as Category);
     setTitleStyle(article.titleStyle ?? "default");
     setAuthorName(article.authorName);
     setPhotoPreviewUrl(article.authorPhotoUrl ?? null);
     setPhotoAssetId(null);
     setPhotoError("");
+    setImages(
+      parsed.images.map((img) => ({
+        key: newKey(),
+        assetId: img.assetId,
+        previewUrl: urlForImage({ asset: { _ref: img.assetId } })?.width(200).url() ?? null,
+        caption: img.caption ?? "",
+        afterParagraph: img.afterParagraph,
+        uploading: false,
+        error: "",
+      }))
+    );
     setFormError("");
     setScreen("form");
   }
@@ -123,6 +152,66 @@ export default function MagazineSubmitPage() {
       setPhotoAssetId(null);
     } finally {
       setPhotoUploading(false);
+    }
+  }
+
+  function addImageSlot() {
+    setImages((prev) => [
+      ...prev,
+      {
+        key: newKey(),
+        assetId: null,
+        previewUrl: null,
+        caption: "",
+        afterParagraph: Math.max(paragraphCount - 1, 0),
+        uploading: false,
+        error: "",
+      },
+    ]);
+  }
+
+  function removeImageSlot(key: string) {
+    setImages((prev) => prev.filter((img) => img.key !== key));
+  }
+
+  function updateImage(key: string, patch: Partial<BodyImage>) {
+    setImages((prev) => prev.map((img) => (img.key === key ? { ...img, ...patch } : img)));
+  }
+
+  async function handleImageFileChange(key: string, file: File | undefined) {
+    if (!file) return;
+
+    if (file.type !== "image/jpeg") {
+      updateImage(key, { error: "JPEG ചിത്രം മാത്രം അപ്‌ലോഡ് ചെയ്യുക" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      updateImage(key, { error: "ചിത്രം വളരെ വലുതാണ് (5MB വരെ മാത്രം)" });
+      return;
+    }
+
+    updateImage(key, {
+      error: "",
+      previewUrl: URL.createObjectURL(file),
+      uploading: true,
+    });
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/magazine-upload-photo", { method: "POST", body: formData });
+      const data = await res.json();
+
+      if (!res.ok) {
+        updateImage(key, { error: data.error ?? "അപ്‌ലോഡ് പരാജയപ്പെട്ടു", assetId: null });
+        return;
+      }
+
+      updateImage(key, { assetId: data.assetId });
+    } catch {
+      updateImage(key, { error: "അപ്‌ലോഡ് പരാജയപ്പെട്ടു", assetId: null });
+    } finally {
+      updateImage(key, { uploading: false });
     }
   }
 
@@ -201,6 +290,13 @@ export default function MagazineSubmitPage() {
       title,
       body,
       ...(photoAssetId ? { authorPhotoAssetId: photoAssetId } : {}),
+      images: images
+        .filter((img) => img.assetId)
+        .map((img) => ({
+          assetId: img.assetId,
+          caption: img.caption || undefined,
+          afterParagraph: img.afterParagraph,
+        })),
     };
 
     try {
@@ -219,6 +315,7 @@ export default function MagazineSubmitPage() {
       setTitle("");
       setBody("");
       setCategory(null);
+      setImages([]);
       setBanner(editingId ? "മാറ്റങ്ങൾ സേവ് ചെയ്തു!" : "പ്രസിദ്ധീകരിച്ചു!");
       setEditingId(null);
       setScreen("list");
@@ -394,13 +491,97 @@ export default function MagazineSubmitPage() {
               rows={12}
               className="mt-2 w-full rounded-lg border-2 border-border bg-surface px-4 py-4 font-malayalam text-xl leading-relaxed text-foreground focus:border-accent focus:outline-none"
             />
+            <p className="mt-1 font-malayalam text-sm text-muted-foreground">
+              ഖണ്ഡികകൾക്കിടയിൽ ഒരു ശൂന്യ വരി വിടുക.
+            </p>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <label className="block font-malayalam text-xl text-foreground">
+                ചിത്രങ്ങൾ (ഐച്ഛികം)
+              </label>
+              <button
+                type="button"
+                onClick={addImageSlot}
+                className="rounded-full border-2 border-border px-4 py-2 font-malayalam text-sm text-foreground"
+              >
+                + ചിത്രം ചേർക്കുക
+              </button>
+            </div>
+            {paragraphCount === 0 && (
+              <p className="mt-2 font-malayalam text-sm text-muted-foreground">
+                ചിത്രത്തിന്റെ സ്ഥാനം തിരഞ്ഞെടുക്കാൻ ആദ്യം മുകളിൽ എഴുത്ത് ചേർക്കുക.
+              </p>
+            )}
+            <div className="mt-3 space-y-4">
+              {images.map((img) => (
+                <div key={img.key} className="rounded-lg border-2 border-border p-3">
+                  <div className="flex items-center gap-3">
+                    {img.previewUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element -- local/blob preview
+                      <img
+                        src={img.previewUrl}
+                        alt=""
+                        className="h-16 w-16 rounded-md object-cover"
+                      />
+                    )}
+                    <label className="cursor-pointer rounded-full border-2 border-border bg-surface px-3 py-2 font-malayalam text-sm text-foreground">
+                      {img.uploading
+                        ? "അപ്‌ലോഡ് ചെയ്യുന്നു…"
+                        : img.assetId
+                          ? "ചിത്രം മാറ്റുക"
+                          : "ചിത്രം തിരഞ്ഞെടുക്കുക"}
+                      <input
+                        type="file"
+                        accept="image/jpeg"
+                        onChange={(e) => handleImageFileChange(img.key, e.target.files?.[0])}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => removeImageSlot(img.key)}
+                      className="ml-auto font-malayalam text-sm text-accent"
+                    >
+                      നീക്കം ചെയ്യുക
+                    </button>
+                  </div>
+                  {img.error && (
+                    <p className="mt-2 font-malayalam text-sm text-accent">{img.error}</p>
+                  )}
+                  <input
+                    type="text"
+                    value={img.caption}
+                    onChange={(e) => updateImage(img.key, { caption: e.target.value })}
+                    placeholder="അടിക്കുറിപ്പ് (ഐച്ഛികം)"
+                    className="mt-3 w-full rounded-md border border-border bg-surface px-3 py-2 font-malayalam text-sm text-foreground focus:border-accent focus:outline-none"
+                  />
+                  {paragraphCount > 0 && (
+                    <select
+                      value={Math.min(img.afterParagraph, paragraphCount - 1)}
+                      onChange={(e) =>
+                        updateImage(img.key, { afterParagraph: Number(e.target.value) })
+                      }
+                      className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 font-malayalam text-sm text-foreground focus:border-accent focus:outline-none"
+                    >
+                      {Array.from({ length: paragraphCount }).map((_, i) => (
+                        <option key={i} value={i}>
+                          {`ഖണ്ഡിക ${i + 1}-നു ശേഷം`}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {formError && <p className="font-malayalam text-lg text-accent">{formError}</p>}
 
           <button
             type="submit"
-            disabled={submitting || photoUploading}
+            disabled={submitting || photoUploading || anyImageUploading}
             className="w-full rounded-full bg-accent py-4 font-malayalam text-xl font-medium text-accent-foreground disabled:opacity-60"
           >
             {submitting

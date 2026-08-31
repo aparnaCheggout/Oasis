@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { writeClient } from "@/sanity/lib/writeClient";
 import { getCurrentIssueInfo } from "@/lib/date";
-import { plainTextToPortableText } from "@/lib/portableText";
+import { buildBodyFromPlainTextAndImages, type SimpleImage } from "@/lib/portableText";
 import type { ArticleCategory, ArticleTitleStyle } from "@/lib/types";
 
 const COOKIE_NAME = "magazine_session";
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Submission form isn't set up yet." }, { status: 500 });
   }
 
-  const { title, authorName, category, body, titleStyle, authorPhotoAssetId } =
+  const { title, authorName, category, body, titleStyle, authorPhotoAssetId, images } =
     (await request.json()) as {
       title?: string;
       authorName?: string;
@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       body?: string;
       titleStyle?: ArticleTitleStyle;
       authorPhotoAssetId?: string;
+      images?: SimpleImage[];
     };
 
   if (!title?.trim() || !authorName?.trim() || !body?.trim()) {
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
       : {}),
     category,
     issue: { _type: "reference", _ref: issueId },
-    body: plainTextToPortableText(body.trim()),
+    body: buildBodyFromPlainTextAndImages(body.trim(), images ?? []),
     publishedAt: new Date().toISOString(),
   });
 
